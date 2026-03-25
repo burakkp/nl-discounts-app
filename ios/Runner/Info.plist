@@ -66,5 +66,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need your location to find supermarket discounts near you.</string>
+	<key>NSCameraUsageDescription</key>
+<string>We need your camera to scan supermarket price tags.</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>We need photo library access to upload saved receipts.</string>
 </dict>
 </plist>

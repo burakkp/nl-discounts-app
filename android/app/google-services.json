@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "260407059558",
+    "project_id": "nl-discounts-dev",
+    "storage_bucket": "nl-discounts-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:260407059558:android:bbe68834becdd78b7c79a7",
+        "android_client_info": {
+          "package_name": "com.example.nl_discounts_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "260407059558-j10flvcjbeuj9slpjbhd09mqlr74rulh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDU4pU6eDaFq4DFKw4M9LjnukBsq9ELZWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "260407059558-j10flvcjbeuj9slpjbhd09mqlr74rulh.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "260407059558-a2q623tu5vl72q02vkmmp7c2f6o679j3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.nlDiscountsApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
