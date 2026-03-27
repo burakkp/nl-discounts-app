@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html lang="nl"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-surface": "#2b2f30",
+              "on-primary-fixed-variant": "#4d2300",
+              "secondary-fixed": "#b0d5ff",
+              "surface-container-lowest": "#ffffff",
+              "on-error-container": "#520c00",
+              "primary-fixed-dim": "#e97600",
+              "primary-dim": "#7f3e00",
+              "inverse-surface": "#0b0f10",
+              "on-secondary-container": "#004a79",
+              "error-container": "#f95630",
+              "on-tertiary-fixed": "#3a0002",
+              "on-primary-container": "#3f1b00",
+              "on-tertiary": "#ffefed",
+              "on-primary": "#fff0e8",
+              "error-dim": "#b92902",
+              "tertiary-fixed-dim": "#ff7b70",
+              "on-secondary-fixed-variant": "#005488",
+              "tertiary-fixed": "#ff9288",
+              "surface-variant": "#d8dedf",
+              "inverse-on-surface": "#9a9d9e",
+              "outline-variant": "#aaaeaf",
+              "surface-bright": "#f4f7f8",
+              "on-primary-fixed": "#010000",
+              "secondary-container": "#b0d5ff",
+              "secondary-fixed-dim": "#94c8ff",
+              "on-tertiary-fixed-variant": "#7a0008",
+              "primary-fixed": "#fd8100",
+              "secondary": "#005f99",
+              "error": "#b02500",
+              "surface-tint": "#914700",
+              "outline": "#747778",
+              "primary-container": "#fd8100",
+              "on-background": "#2b2f30",
+              "surface-container-highest": "#d8dedf",
+              "tertiary-dim": "#a4000f",
+              "on-tertiary-container": "#690006",
+              "on-error": "#ffefec",
+              "surface-container-low": "#eef1f2",
+              "secondary-dim": "#005387",
+              "tertiary-container": "#ff9288",
+              "surface-container-high": "#dee3e5",
+              "background": "#f4f7f8",
+              "surface-container": "#e5e9ea",
+              "surface-dim": "#cfd5d7",
+              "surface": "#f4f7f8",
+              "on-surface-variant": "#585c5d",
+              "tertiary": "#ba0013",
+              "primary": "#914700",
+              "on-secondary": "#ecf3ff",
+              "inverse-primary": "#fd8100",
+              "on-secondary-fixed": "#00375b"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Work Sans"],
+              "label": ["Work Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container/30">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm dark:shadow-none">
+<div class="flex items-center justify-between px-6 h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-orange-600 dark:text-orange-400" data-icon="storefront">storefront</span>
+<h1 class="text-xl font-black text-orange-600 dark:text-orange-500 tracking-tighter font-headline">Marktkraam</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex items-center gap-6 mr-6">
+<a class="text-orange-700 dark:text-orange-300 font-semibold text-sm" href="#">Feed</a>
+<a class="text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors px-2 py-1 rounded-lg text-sm" href="#">Kaart</a>
+<a class="text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors px-2 py-1 rounded-lg text-sm" href="#">Watchlist</a>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/20">
+<img alt="User profile photo" data-alt="professional headshot of a smiling young man with clean background, soft lighting, modern corporate style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGQSA-TExS4NyBomuZv7WvJo6eBzVydi_lS0UJ5azNQ9dAld1zX0YKNxWpe2Og_Tgz7KGSP-8nGaHkbJvKIegTrWGlxj_JbT34tBN7Gi9GTLTzG8SQbK1uYy0VGGdL6IwU17MBB76vmFBsTBVOZPxppoTKyrdyVMi70eMAz18RKDm8oCmGXfpS6rKW81MgpB-FAcuG5VyA48PIsAutAW6ypREmZ0K7ceeBd-Zcbdum3ix58JRtinbuND1Me2jDoYBE6iJgvlVBCgrm"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-20 pb-28 px-4 max-w-7xl mx-auto">
+<!-- Search & Neighborhood Badge Cluster -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+<div class="relative flex-1 max-w-2xl">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full bg-surface-container-highest border-none rounded-full py-4 pl-12 pr-6 focus:ring-2 focus:ring-primary-container/50 text-on-surface placeholder:text-outline/70 transition-all font-body" placeholder="Zoek naar producten of winkels..." type="text"/>
+</div>
+<div class="bg-secondary-container px-4 py-2 rounded-xl self-start md:self-center flex items-center gap-2">
+<span class="material-symbols-outlined text-on-secondary-container text-sm" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<span class="text-on-secondary-container text-xs font-bold font-label uppercase tracking-wider">Je lokale Amsterdam Store</span>
+</div>
+</div>
+<!-- Categories Scroller -->
+<section class="mb-10 overflow-hidden">
+<div class="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+<button class="flex-shrink-0 bg-primary-container text-on-primary-container px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-lg" data-icon="auto_awesome">auto_awesome</span>
+                    Alle Deals
+                </button>
+<button class="flex-shrink-0 bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="eco">eco</span>
+                    Verse Groenten
+                </button>
+<button class="flex-shrink-0 bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="face">face</span>
+                    Zorg &amp; Beauty
+                </button>
+<button class="flex-shrink-0 bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="bakery_dining">bakery_dining</span>
+                    Bakkerij
+                </button>
+<button class="flex-shrink-0 bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="liquor">liquor</span>
+                    Dranken
+                </button>
+</div>
+</section>
+<!-- Featured Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
+<!-- Main Hero Deal -->
+<div class="md:col-span-8 bg-surface-container-lowest rounded-[2rem] p-8 relative overflow-hidden group shadow-sm">
+<div class="relative z-10 flex flex-col h-full justify-between max-w-md">
+<div>
+<div class="inline-flex bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-lg text-xs font-bold mb-4 uppercase tracking-widest">Mega Deal</div>
+<h2 class="text-4xl md:text-5xl font-black font-headline text-on-surface leading-none mb-4 tracking-tight">Verse Hollandse Aardbeien</h2>
+<p class="text-on-surface-variant text-lg font-medium mb-6">500 gram • Zoet en sappig van de lokale teler</p>
+</div>
+<div class="flex items-end gap-4">
+<div class="flex flex-col">
+<span class="text-outline line-through text-lg font-medium">€ 4.99</span>
+<span class="text-tertiary text-5xl font-black font-headline tracking-tighter">€ 2.49</span>
+</div>
+<button class="bg-primary-container text-on-primary-container h-14 px-8 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-primary-container/20 transition-all active:scale-95">
+                            Nu Bekijken
+                        </button>
+</div>
+</div>
+<div class="absolute right-[-10%] bottom-[-5%] w-[60%] md:w-[50%] transform group-hover:scale-105 transition-transform duration-500">
+<img alt="Strawberry selection" class="drop-shadow-2xl" data-alt="vibrant close-up of fresh red strawberries with green leaves, bright natural sunlight, studio food photography style with soft shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmwV_NAj9y2JLv4AYdlAl_KoJetxnMLaOgiFLskwZ3NxwZim4COZzQwx8U1972tetSYUFJe6GaXjDXlw8aCHKK-N5d2-rE6IlXGKuh8v3VsQi-7MTdxXa38tDqvOy2-ogLUE-Jk9mbqLVVLGXCg0EWmwM_jO3bWBRoet3AtVkUiC9HwQfvBUWMQjCDh2ja637rGRWXV_llI7E2AQ7H1pwbzfKT1j0jDdulaMZG0_iV23lReySljtWIlQJ077PGVz-fuESD4MtztEWM"/>
+</div>
+</div>
+<!-- Side Secondary Deal -->
+<div class="md:col-span-4 bg-secondary-container/30 rounded-[2rem] p-8 relative overflow-hidden flex flex-col justify-between">
+<div>
+<span class="text-on-secondary-container/70 text-sm font-bold uppercase tracking-widest block mb-1">Lidl Favoriet</span>
+<h3 class="text-2xl font-black font-headline text-on-secondary-container leading-tight">Biologische Olijfolie</h3>
+</div>
+<div class="relative z-10">
+<div class="bg-tertiary text-on-tertiary inline-block px-4 py-2 rounded-xl font-black text-xl mb-4">
+                        2e HALVE PRIJS
+                    </div>
+<div class="flex items-center gap-2">
+<img alt="Olive oil bottle" class="w-32 h-32 object-contain drop-shadow-xl" data-alt="premium dark glass olive oil bottle with minimalist gold label, artistic side lighting on wooden surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEflAnx9828lkcnI-5bAnLUHRpGfEgZitFxsXmpFf5i6RV6aJKire5jaY8KuSwOna9ND9A27pGQ9hQCh3UpXZnlB4dpTDvChcbIog3_JjkasrxFNySYIiZTFqxMTA2NXXPikGN4V7rWqw_17g3pCZ4dF8odnNT3yVplczsEsbn_4qT0wW8Hr9mMqa8tdr5KQuTL6bSzPvLCtbD1BxIoFBxoFGfZ7nskiYzo7YO1bsMdd4OmN_dEiksOh-YP8U17BoedH-31rBR-L1L"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Product Grid -->
+<section>
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-2xl font-black font-headline tracking-tight">Populaire Aanbiedingen</h3>
+<button class="text-primary font-bold flex items-center gap-1 hover:underline">
+                    Bekijk alles
+                    <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+<!-- Card 1 -->
+<div class="group bg-surface-container-low rounded-3xl p-4 flex flex-col gap-3 relative hover:bg-surface-container-high transition-colors">
+<div class="absolute top-2 left-2 z-10">
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter">1+1 Gratis</span>
+</div>
+<div class="aspect-square bg-white rounded-2xl overflow-hidden relative p-4 flex items-center justify-center">
+<img alt="Dish soap" class="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" data-alt="brightly colored plastic dish soap bottle, professional product photography on clean white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBz5_RRYQhlww9TfDXyayZfUq8ee3eDaZwWhO_yuQdUfHEnFKVlDQuLnlivXodLGfhCumBv8vRrTXlaWTivPjR4mR9OGdTWFovOZxfHRbMXGJPYaqd6LJrtIidcFcZn8nClgrqPZvdlYRSX4ruqQ_XIA500fiGRKUrGRJ_rciV4lQ5UQhHqLlnYxZwn1aPlqbbBlZm_RCrGipWqwih6L5sHvs0YijvmrEv1SNBlV-nYs3S5QRChoQNOXqWcZML-szC3-YnAGXChTO3v"/>
+</div>
+<div>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Albert Heijn</span>
+<h4 class="text-sm font-bold text-on-surface line-clamp-1">Dreft Afwasmiddel</h4>
+<p class="text-[10px] text-on-surface-variant mb-2">Citroen • 350ml</p>
+<div class="flex items-baseline gap-2">
+<span class="text-tertiary text-lg font-black font-headline">€ 1.85</span>
+<span class="text-outline line-through text-xs">€ 3.70</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group bg-surface-container-low rounded-3xl p-4 flex flex-col gap-3 relative hover:bg-surface-container-high transition-colors">
+<div class="absolute top-2 left-2 z-10">
+<span class="bg-secondary text-white text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter">Bonus Deal</span>
+</div>
+<div class="aspect-square bg-white rounded-2xl overflow-hidden relative p-4 flex items-center justify-center">
+<img alt="Milk carton" class="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" data-alt="modern milk carton package design, fresh dairy product photography with soft bright lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXOPFEuCjh4S0T_5b3YAC1W3aA08ONs7EB-RbPHl6TGQmYke9Fhw1P9HRd2Ogwk5yWNUfvpX5A3-H70nYErViuxgjnnL1jQd63iOGUpJ5Hrrf6yWN8UW5sacSsAARcGz9NEZ1CLGkvUn3P0qWoFrN-48IWgxht2Ep9FeEuDbAibqbd3uPeHwP7doiRZblKufV4OzyHkAQ_OTR0YdFvsckzwHQCrOBKjuGI1eePrRTkkCNzVL3_OdELmGL6Y3AYjM6fRDXPg-sqn0e3"/>
+</div>
+<div>
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">Jumbo</span>
+<h4 class="text-sm font-bold text-on-surface line-clamp-1">Houdbare Volle Melk</h4>
+<p class="text-[10px] text-on-surface-variant mb-2">Pak 1 Liter</p>
+<div class="flex items-baseline gap-2">
+<span class="text-tertiary text-lg font-black font-headline">€ 0.99</span>
+<span class="text-outline line-through text-xs">€ 1.45</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group bg-surface-container-low rounded-3xl p-4 flex flex-col gap-3 relative hover:bg-surface-container-high transition-colors">
+<div class="absolute top-2 left-2 z-10">
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter">-25% Korting</span>
+</div>
+<div class="aspect-square bg-white rounded-2xl overflow-hidden relative p-4 flex items-center justify-center">
+<img alt="Blueberries" class="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" data-alt="macro shot of fresh ripe blueberries with water droplets, vibrant blue and purple tones, morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3_i4uDYbZQnb1DpOLXh4iU3tqusP-UmXKhD-V-qavZJpJpESB-l8wPFeY-2HDu27M1QB7oXnNzDOVVIPzddXztxYAVohbczBTT5fcotgyfTpnUeUnRzsl3DkvCatPLCz2EMzOWAz00N0qsX-jIe87ocO9YVjatuqOGoSTRlHlVLycdnSVRoq5wJVD9gb_fK9N54tI2TbOmR2PsJVzRAlAk0L06Vo1kes3WtecM4EdCO9MobKpWksHgJx4G-PCB27tNKs-3bK1lE7E"/>
+</div>
+<div>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Albert Heijn</span>
+<h4 class="text-sm font-bold text-on-surface line-clamp-1">Blauwe Bessen</h4>
+<p class="text-[10px] text-on-surface-variant mb-2">Bakje 300g</p>
+<div class="flex items-baseline gap-2">
+<span class="text-tertiary text-lg font-black font-headline">€ 2.99</span>
+<span class="text-outline line-through text-xs">€ 3.99</span>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="group bg-surface-container-low rounded-3xl p-4 flex flex-col gap-3 relative hover:bg-surface-container-high transition-colors">
+<div class="absolute top-2 left-2 z-10">
+<span class="bg-primary-container text-on-primary-container text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter">Prijsverlaging</span>
+</div>
+<div class="aspect-square bg-white rounded-2xl overflow-hidden relative p-4 flex items-center justify-center">
+<img alt="Broccoli" class="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" data-alt="fresh green broccoli head, detailed texture, bright organic vegetable photography on light background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCIjJ0-GUJer4k82hAmZS3i2CYn5pRSo_bF6aGzJdzDKaprYYFU_Oeh9qgk7DA6k-3sNlPe9bX0dQgN5-QCbcS3ddFemHaN6GqQtQMUULZ6_jGgPlyovq0NXI1vu10YqyfSOEglNr9cvJYqZblncVO54APNmOkiuJ1npM3fEMaDdz6udvne0CHGnCGfkqwqLEhy0xku9NaTP-3sJrohzxzA6ydjBY4W4_kKyIA4XbiLxi_yOcPS5aTcqjNuzcb9sq8TY6txTBQEgXq"/>
+</div>
+<div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Lidl</span>
+<h4 class="text-sm font-bold text-on-surface line-clamp-1">Verse Broccoli</h4>
+<p class="text-[10px] text-on-surface-variant mb-2">Per stuk • 500g</p>
+<div class="flex items-baseline gap-2">
+<span class="text-tertiary text-lg font-black font-headline">€ 0.79</span>
+<span class="text-outline line-through text-xs">€ 1.19</span>
+</div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="group bg-surface-container-low rounded-3xl p-4 flex flex-col gap-3 relative hover:bg-surface-container-high transition-colors">
+<div class="absolute top-2 left-2 z-10">
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter">2 voor €5</span>
+</div>
+<div class="aspect-square bg-white rounded-2xl overflow-hidden relative p-4 flex items-center justify-center">
+<img alt="Pizza" class="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300" data-alt="frozen pizza box packaging showing delicious melted cheese pizza, vibrant red tomato sauce details" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCN4J3-4biZTVhTl0siTu4OmIW_P_BDoBsY6nqaVGriI5gt2KvEEJkTSpsEKPnWR6lzy6RnSkVLEbsIecTZ6QxXm0JNKRC7e2IbXC5JVaKvAWzzwwFFJi6MGYZKBydcFAk0G2sIzND0-lq5oCG3TS6m4Vsh5V7D9ykSvUXCtZ-IM7h8R3UJ_GBcacCPV1-twysRJKihkoBaa26TNUFUW8vQKG1CjpnTEzy65o19aafg44hipNvazeG9RXLRXqM45KJNdRe3atzKwMef"/>
+</div>
+<div>
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">Jumbo</span>
+<h4 class="text-sm font-bold text-on-surface line-clamp-1">Dr. Oetker Ristorante</h4>
+<p class="text-[10px] text-on-surface-variant mb-2">Alle varianten</p>
+<div class="flex items-baseline gap-2">
+<span class="text-tertiary text-lg font-black font-headline">€ 2.50</span>
+<span class="text-outline line-through text-xs">€ 3.89</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-2xl bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl border-t border-slate-100/50 dark:border-slate-800/50 shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
+<div class="flex justify-around items-center px-4 pb-safe pt-2 h-20 w-full max-w-2xl mx-auto">
+<a class="flex flex-col items-center justify-center bg-orange-100 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 rounded-xl px-3 py-1.5 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="local_offer" style="font-variation-settings: 'FILL' 1;">local_offer</span>
+<span class="font-label text-[10px] font-semibold tracking-wide uppercase mt-1">Feed</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label text-[10px] font-semibold tracking-wide uppercase mt-1">Kaart</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+<span class="font-label text-[10px] font-semibold tracking-wide uppercase mt-1">Watchlist</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label text-[10px] font-semibold tracking-wide uppercase mt-1">Scan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label text-[10px] font-semibold tracking-wide uppercase mt-1">Profiel</span>
+</a>
+</div>
+</nav>
+<!-- Floating Action Button for Dutch specific context (Newsletter/Notification signup) -->
+<button class="fixed bottom-24 right-6 bg-primary-container text-on-primary-container w-14 h-14 rounded-full shadow-2xl flex items-center justify-center z-40 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-3xl" data-icon="notifications" style="font-variation-settings: 'FILL' 1;">notifications</span>
+</button>
+</body></html>

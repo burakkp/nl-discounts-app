@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html lang="nl"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-surface": "#2b2f30",
+            "on-primary-fixed-variant": "#4d2300",
+            "secondary-fixed": "#b0d5ff",
+            "surface-container-lowest": "#ffffff",
+            "on-error-container": "#520c00",
+            "primary-fixed-dim": "#e97600",
+            "primary-dim": "#7f3e00",
+            "inverse-surface": "#0b0f10",
+            "on-secondary-container": "#004a79",
+            "error-container": "#f95630",
+            "on-tertiary-fixed": "#3a0002",
+            "on-primary-container": "#3f1b00",
+            "on-tertiary": "#ffefed",
+            "on-primary": "#fff0e8",
+            "error-dim": "#b92902",
+            "tertiary-fixed-dim": "#ff7b70",
+            "on-secondary-fixed-variant": "#005488",
+            "tertiary-fixed": "#ff9288",
+            "surface-variant": "#d8dedf",
+            "inverse-on-surface": "#9a9d9e",
+            "outline-variant": "#aaaeaf",
+            "surface-bright": "#f4f7f8",
+            "on-primary-fixed": "#010000",
+            "secondary-container": "#b0d5ff",
+            "secondary-fixed-dim": "#94c8ff",
+            "on-tertiary-fixed-variant": "#7a0008",
+            "primary-fixed": "#fd8100",
+            "secondary": "#005f99",
+            "error": "#b02500",
+            "surface-tint": "#914700",
+            "outline": "#747778",
+            "primary-container": "#fd8100",
+            "on-background": "#2b2f30",
+            "surface-container-highest": "#d8dedf",
+            "tertiary-dim": "#a4000f",
+            "on-tertiary-container": "#690006",
+            "on-error": "#ffefec",
+            "surface-container-low": "#eef1f2",
+            "secondary-dim": "#005387",
+            "tertiary-container": "#ff9288",
+            "surface-container-high": "#dee3e5",
+            "background": "#f4f7f8",
+            "surface-container": "#e5e9ea",
+            "surface-dim": "#cfd5d7",
+            "surface": "#f4f7f8",
+            "on-surface-variant": "#585c5d",
+            "tertiary": "#ba0013",
+            "primary": "#914700",
+            "on-secondary": "#ecf3ff",
+            "inverse-primary": "#fd8100",
+            "on-secondary-fixed": "#00375b"
+          },
+          fontFamily: {
+            "headline": ["Plus Jakarta Sans"],
+            "body": ["Work Sans"],
+            "label": ["Work Sans"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px
+    }
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent
+    }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #d8dedf;
+    border-radius: 10px
+    }
+.map-container {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAwxaTE4Cq5WARn_Nrf0QaQjTWkjH9aXNVKByT6yGe8z-1LtylOsRg7pVGwtOgIgWodQM04M6317Kel7hewkR936plMtDNvvFIbQbM0Tj-1fMMMZg8HoakwdUliNxcJJ1WGWGZRAG9000hrRY9Qhxdu6sDJPJtFJ0Exm-BiGkt8yKQExRCiiqwoFgHaebImZQP4n5-IkqrflE0iou7y2TuEaFn7iz3_bEPwZ6icRNyOVow78hh1C8jCx3qC5a8PUBvCyZmI_2XuwJw-);
+    background-size: cover;
+    background-position: center
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface select-none overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm dark:shadow-none h-16 flex items-center justify-between px-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-orange-600 dark:text-orange-400 active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="storefront">storefront</span>
+</div>
+<h1 class="font-plus-jakarta-sans font-bold tracking-tight text-xl font-black text-orange-600 dark:text-orange-500 tracking-tighter">Marktkraam</h1>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<button class="font-work-sans text-sm font-semibold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors px-3 py-2 rounded-lg">Feed</button>
+<button class="font-work-sans text-sm font-semibold text-orange-700 dark:text-orange-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors px-3 py-2 rounded-lg bg-orange-100 dark:bg-orange-950/40">Kaart</button>
+<button class="font-work-sans text-sm font-semibold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors px-3 py-2 rounded-lg">Watchlist</button>
+<button class="font-work-sans text-sm font-semibold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors px-3 py-2 rounded-lg">Scan</button>
+</div>
+<div class="w-10 h-10 rounded-full border-2 border-orange-100 overflow-hidden active:scale-95 duration-200 cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="close-up portrait of a smiling young professional man with short dark hair in a bright modern office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWGojte9v3WednwxCqAk66G3nUOUZMgWXZqk4k9C14VOfnNNj6PoNP0UVCBsSTruRihF3cFDhPsFjbBEccoDfb784-Eqx0ZbhmtAG7W-f0LfzTzQak4FuCsSSxeM_8UdN7pZ73eplSM1OY3yxILOv296UvUqGVr_w5j3FzOgzSFovuv8KY5tH3MW7NIaBgxp1vS02BLT4OS1R1dY6TbL4oSVmbtbMDl7v5rDPsPahPcOIFhPPG5McIr3Z7H2OXbvw3d-X2P6I73uPQ"/>
+</div>
+</header>
+<!-- Main Canvas / Map View -->
+<main class="relative h-screen w-full pt-16 pb-20 overflow-hidden">
+<!-- Map Canvas -->
+<div class="absolute inset-0 z-0 map-container" data-location="Amsterdam" style="">
+<!-- Gradient Overlays for UI readability -->
+<div class="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-black/10 pointer-events-none"></div>
+<!-- Interactive Map Pins -->
+<!-- AH Pin -->
+<div class="absolute top-[35%] left-[42%] group cursor-pointer active:scale-90 transition-transform">
+<div class="relative">
+<div class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full shadow-lg flex items-center gap-2 border-2 border-white scale-110">
+<span class="text-[10px] font-bold">AH</span>
+<span class="text-xs font-black">24</span>
+</div>
+<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+</div>
+</div>
+<!-- Jumbo Pin -->
+<div class="absolute top-[52%] left-[58%] group cursor-pointer active:scale-90 transition-transform">
+<div class="relative">
+<div class="bg-[#FFCC00] text-black px-3 py-1 rounded-full shadow-lg flex items-center gap-2 border-2 border-white">
+<span class="text-[10px] font-bold">JUMBO</span>
+<span class="text-xs font-black">18</span>
+</div>
+<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+</div>
+</div>
+<!-- Lidl Pin -->
+<div class="absolute top-[28%] left-[65%] group cursor-pointer active:scale-90 transition-transform">
+<div class="relative">
+<div class="bg-secondary text-white px-3 py-1 rounded-full shadow-lg flex items-center gap-2 border-2 border-white">
+<span class="text-[10px] font-bold">LIDL</span>
+<span class="text-xs font-black">42</span>
+</div>
+<div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+</div>
+</div>
+<!-- User Location Dot -->
+<div class="absolute top-[45%] left-[50%] -translate-x-1/2 -translate-y-1/2">
+<div class="relative flex items-center justify-center">
+<div class="absolute w-12 h-12 bg-primary/20 rounded-full animate-pulse"></div>
+<div class="w-5 h-5 bg-white rounded-full shadow-xl flex items-center justify-center">
+<div class="w-3 h-3 bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- UI Overlay: Neighborhood Badge -->
+<div class="absolute top-20 right-4 z-20">
+<div class="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-xl shadow-lg border-2 border-white flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span>
+<span class="text-xs font-bold font-label tracking-wide">AMSTERDAM CENTRUM</span>
+</div>
+</div>
+<!-- UI Overlay: Filter Pill Bar -->
+<div class="absolute top-20 left-4 z-20 flex gap-2 overflow-x-auto no-scrollbar max-w-[calc(100vw-180px)]">
+<button class="flex-none bg-surface-container-lowest text-on-surface px-4 py-2 rounded-full shadow-sm font-label text-xs font-semibold border-2 border-transparent hover:border-primary-container transition-all">Alle Winkels</button>
+<button class="flex-none bg-secondary-container/90 backdrop-blur-md text-on-secondary-container px-4 py-2 rounded-full shadow-sm font-label text-xs font-bold flex items-center gap-2">
+<span>Albert Heijn</span>
+<span class="material-symbols-outlined text-xs" data-icon="close">close</span>
+</button>
+<button class="flex-none bg-surface-container-lowest text-on-surface px-4 py-2 rounded-full shadow-sm font-label text-xs font-semibold">Jumbo</button>
+<button class="flex-none bg-surface-container-lowest text-on-surface px-4 py-2 rounded-full shadow-sm font-label text-xs font-semibold">Lidl</button>
+</div>
+<!-- Floating Action Buttons -->
+<div class="absolute right-4 bottom-56 z-20 flex flex-col gap-3">
+<button class="w-12 h-12 bg-surface-container-lowest text-on-surface rounded-2xl shadow-xl flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="layers">layers</span>
+</button>
+<button class="w-12 h-12 bg-primary-container text-on-primary-container rounded-2xl shadow-xl flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="my_location" data-weight="fill" style="font-variation-settings: 'FILL' 1;">my_location</span>
+</button>
+</div>
+<!-- Bottom Sheet Details -->
+<div class="absolute bottom-20 left-0 right-0 z-30 px-4">
+<div class="bg-white/95 backdrop-blur-2xl rounded-t-[2.5rem] rounded-b-xl shadow-2xl p-6 pb-8 border-t border-white">
+<div class="w-12 h-1 bg-surface-container-high rounded-full mx-auto mb-6"></div>
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-secondary-container rounded-2xl flex items-center justify-center font-black text-on-secondary-container">AH</div>
+<div>
+<h3 class="font-headline text-lg font-bold leading-none">Albert Heijn Museumplein</h3>
+<p class="text-xs text-on-surface-variant mt-1 font-label">24 actieve aanbiedingen • 400m afstand</p>
+</div>
+</div>
+<button class="p-2 bg-surface-container-low rounded-xl text-primary">
+<span class="material-symbols-outlined" data-icon="directions">directions</span>
+</button>
+</div>
+<!-- Deal Scroller (Asymmetric/Bento Style) -->
+<div class="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+<!-- Deal Card 1 -->
+<div class="flex-none w-48 bg-surface-container-low rounded-3xl p-3 relative overflow-visible">
+<div class="h-32 w-full rounded-2xl bg-white mb-3 flex items-center justify-center relative">
+<img class="h-24 w-auto object-contain z-10 hover:scale-110 transition-transform" data-alt="vibrant fresh organic strawberries in a light wooden punnet with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7qOCi9UxvN68nJA5ILTvDGVNlXFXDG_rimou-8wsldPoBmWBDV2F0FktBgEFdXh0_Y3oA-EnboBl7vCEk-f3c8Yt3jnQOboS2ru2EO7dGWTrlwrPKuHM5gohtJoIgWl9ytNx_v57-0wWE-QCmUqqwB-rzdWaElr-GxDdeDVAwL6VVnozBgKNOTt7X8TFD8nmi2kj7otr-6SYhMHdCN9Gt4e7GyaaNdO8YmS-0989PQxuz8ShwLbgSOiQOFP7jiRtcNAxicTlrZSyE"/>
+<div class="absolute top-2 left-2 z-20">
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">1+1 GRATIS</span>
+</div>
+</div>
+<p class="text-xs font-bold leading-tight line-clamp-2 px-1">Hollandse Aardbeien - 400g</p>
+<div class="mt-2 px-1 flex items-end gap-2">
+<span class="text-tertiary font-headline font-bold text-lg">€3.49</span>
+<span class="text-on-surface-variant line-through text-[10px] mb-1">€6.98</span>
+</div>
+</div>
+<!-- Deal Card 2 -->
+<div class="flex-none w-48 bg-surface-container-low rounded-3xl p-3 relative overflow-visible">
+<div class="h-32 w-full rounded-2xl bg-white mb-3 flex items-center justify-center relative">
+<img class="h-24 w-auto object-contain z-10 hover:scale-110 transition-transform" data-alt="three glass bottles of fresh orange juice with golden condensation drops and bright backlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrwR2H_8XQ0WlfdTv_uwl490KcxiR6wuzQ1MSbh1sj02uPBRXljzRXRigxkYXp6N4CYqSiLrjhLDVvz7WAqVgtHdlgT2_gY2qE85tz1bGQTV4jI62d1bKBk5adFZOFX833XTjQX7T1NuxRSYYtQNOOKotIwX1-Lt_v9nVwPvkyTWBiqWb-TpFITXXOeez1hhNOHEOrc6J92jJLCb9zqvhsXiOmITmxakdhisetW_dQbNqz-Z4muuONokWmtCVS22Kssj2a3gu6RU1A"/>
+<div class="absolute top-2 left-2 z-20">
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">-25% KORTING</span>
+</div>
+</div>
+<p class="text-xs font-bold leading-tight line-clamp-2 px-1">Verse Sinaasappelsap - 1L</p>
+<div class="mt-2 px-1 flex items-end gap-2">
+<span class="text-tertiary font-headline font-bold text-lg">€2.24</span>
+<span class="text-on-surface-variant line-through text-[10px] mb-1">€2.99</span>
+</div>
+</div>
+<!-- Deal Card 3 -->
+<div class="flex-none w-48 bg-surface-container-low rounded-3xl p-3 relative overflow-visible">
+<div class="h-32 w-full rounded-2xl bg-white mb-3 flex items-center justify-center relative">
+<img class="h-24 w-auto object-contain z-10 hover:scale-110 transition-transform" data-alt="artisan brioche burger bun with sesame seeds on a clean white surface with studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKpp9bKrQBHDqkqJmC4I_L5oym-gTC5JD2om76737EbXmpdsLWIIJX3yq51LP1564fhvjZsbRUFjv1NsiTjTwwmvNcex_8xowYksrusjhKFKBhYfiDRVoyCsL8qpvJK9eThKJkiQys92y1t9W9PtJgUVc1RbntyE71BLL_BYvFRcbJU3dcLNvAgX3B59ggyA4d9o4_wTnxLwAW-8TY_6VgxRCn6vXnSK7RrkCxZIWOf3pUQmemiGBB2YzuIODCeUTviCeN14YCu1Cv"/>
+<div class="absolute top-2 left-2 z-20">
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">OP = OP</span>
+</div>
+</div>
+<p class="text-xs font-bold leading-tight line-clamp-2 px-1">Brioche Bollen - 4 stuks</p>
+<div class="mt-2 px-1 flex items-end gap-2">
+<span class="text-tertiary font-headline font-bold text-lg">€1.50</span>
+<span class="text-on-surface-variant line-through text-[10px] mb-1">€2.25</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-2xl bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl border-t border-slate-100/50 dark:border-slate-800/50 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] h-20 px-4 pb-safe pt-2 flex justify-around items-center md:hidden">
+<!-- Feed -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="local_offer">local_offer</span>
+<span class="font-work-sans text-[10px] font-semibold tracking-wide uppercase mt-1">Feed</span>
+</a>
+<!-- Kaart (Active) -->
+<a class="flex flex-col items-center justify-center bg-orange-100 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 rounded-xl px-3 py-1.5 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="map" data-weight="fill" style="font-variation-settings: 'FILL' 1;">map</span>
+<span class="font-work-sans text-[10px] font-semibold tracking-wide uppercase mt-1">Kaart</span>
+</a>
+<!-- Watchlist -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+<span class="font-work-sans text-[10px] font-semibold tracking-wide uppercase mt-1">Watchlist</span>
+</a>
+<!-- Scan -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-work-sans text-[10px] font-semibold tracking-wide uppercase mt-1">Scan</span>
+</a>
+<!-- Profiel -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-work-sans text-[10px] font-semibold tracking-wide uppercase mt-1">Profiel</span>
+</a>
+</nav>
+</body></html>

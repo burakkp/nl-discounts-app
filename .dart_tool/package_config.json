@@ -56,6 +56,12 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "code_assets",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/code_assets-1.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.9"
+    },
+    {
       "name": "collection",
       "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/collection-1.19.1",
       "packageUri": "lib/",
@@ -296,10 +302,58 @@
       "languageVersion": "3.3"
     },
     {
+      "name": "google_fonts",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/google_fonts-8.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.9"
+    },
+    {
+      "name": "google_identity_services_web",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/google_identity_services_web-0.3.3+1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "google_sign_in",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/google_sign_in-6.3.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.6"
+    },
+    {
+      "name": "google_sign_in_android",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/google_sign_in_android-6.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.6"
+    },
+    {
+      "name": "google_sign_in_ios",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/google_sign_in_ios-5.9.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "google_sign_in_platform_interface",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/google_sign_in_platform_interface-2.5.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "google_sign_in_web",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/google_sign_in_web-0.12.4+4",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "gsettings",
       "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/gsettings-0.2.8",
       "packageUri": "lib/",
       "languageVersion": "2.12"
+    },
+    {
+      "name": "hooks",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/hooks-1.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.10"
     },
     {
       "name": "http",
@@ -428,10 +482,22 @@
       "languageVersion": "3.2"
     },
     {
+      "name": "native_toolchain_c",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/native_toolchain_c-0.17.6",
+      "packageUri": "lib/",
+      "languageVersion": "3.10"
+    },
+    {
       "name": "node_preamble",
       "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/node_preamble-2.0.2",
       "packageUri": "lib/",
       "languageVersion": "2.12"
+    },
+    {
+      "name": "objective_c",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/objective_c-9.3.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.10"
     },
     {
       "name": "package_config",
@@ -458,10 +524,52 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "path_provider",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/path_provider-2.1.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "path_provider_android",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/path_provider_android-2.2.23",
+      "packageUri": "lib/",
+      "languageVersion": "3.9"
+    },
+    {
+      "name": "path_provider_foundation",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/path_provider_foundation-2.6.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.10"
+    },
+    {
+      "name": "path_provider_linux",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/path_provider_linux-2.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.19"
+    },
+    {
+      "name": "path_provider_platform_interface",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/path_provider_platform_interface-2.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "path_provider_windows",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/path_provider_windows-2.3.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
       "name": "petitparser",
       "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/petitparser-7.0.2",
       "packageUri": "lib/",
       "languageVersion": "3.8"
+    },
+    {
+      "name": "platform",
+      "rootUri": "file:///home/burakkp/.pub-cache/hosted/pub.dev/platform-3.1.6",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
     },
     {
       "name": "plugin_platform_interface",

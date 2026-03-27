@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html lang="nl"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Marktkraam - AI Crowdsourcing</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-surface": "#2b2f30",
+              "on-primary-fixed-variant": "#4d2300",
+              "secondary-fixed": "#b0d5ff",
+              "surface-container-lowest": "#ffffff",
+              "on-error-container": "#520c00",
+              "primary-fixed-dim": "#e97600",
+              "primary-dim": "#7f3e00",
+              "inverse-surface": "#0b0f10",
+              "on-secondary-container": "#004a79",
+              "error-container": "#f95630",
+              "on-tertiary-fixed": "#3a0002",
+              "on-primary-container": "#3f1b00",
+              "on-tertiary": "#ffefed",
+              "on-primary": "#fff0e8",
+              "error-dim": "#b92902",
+              "tertiary-fixed-dim": "#ff7b70",
+              "on-secondary-fixed-variant": "#005488",
+              "tertiary-fixed": "#ff9288",
+              "surface-variant": "#d8dedf",
+              "inverse-on-surface": "#9a9d9e",
+              "outline-variant": "#aaaeaf",
+              "surface-bright": "#f4f7f8",
+              "on-primary-fixed": "#010000",
+              "secondary-container": "#b0d5ff",
+              "secondary-fixed-dim": "#94c8ff",
+              "on-tertiary-fixed-variant": "#7a0008",
+              "primary-fixed": "#fd8100",
+              "secondary": "#005f99",
+              "error": "#b02500",
+              "surface-tint": "#914700",
+              "outline": "#747778",
+              "primary-container": "#fd8100",
+              "on-background": "#2b2f30",
+              "surface-container-highest": "#d8dedf",
+              "tertiary-dim": "#a4000f",
+              "on-tertiary-container": "#690006",
+              "on-error": "#ffefec",
+              "surface-container-low": "#eef1f2",
+              "secondary-dim": "#005387",
+              "tertiary-container": "#ff9288",
+              "surface-container-high": "#dee3e5",
+              "background": "#f4f7f8",
+              "surface-container": "#e5e9ea",
+              "surface-dim": "#cfd5d7",
+              "surface": "#f4f7f8",
+              "on-surface-variant": "#585c5d",
+              "tertiary": "#ba0013",
+              "primary": "#914700",
+              "on-secondary": "#ecf3ff",
+              "inverse-primary": "#fd8100",
+              "on-secondary-fixed": "#00375b"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Work Sans"],
+              "label": ["Work Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scanner-line {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #fd8100, transparent);
+            position: absolute;
+            width: 100%;
+            top: 50%;
+            box-shadow: 0 0 15px #fd8100;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm dark:shadow-none flex items-center justify-between px-6 h-16 w-full">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-orange-600 dark:text-orange-400" data-icon="storefront">storefront</span>
+<h1 class="font-plus-jakarta-sans font-bold tracking-tight text-xl font-black text-orange-600 dark:text-orange-500 tracking-tighter">Marktkraam</h1>
+</div>
+<div class="h-8 w-8 rounded-full overflow-hidden bg-surface-container-high">
+<img alt="User profile photo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_0ZFHkzoQktSLwkr4XEX2hu8ywAtFHINCXZP6X9UM7BaeTHqkW1CXnzLliWxC8o343MFqnXEcL57wZy_ME2fOC7vId3TjWHCdVe4Qn9YtR9a0ziVl2uPBIoOVb98z4YQa3zPMeksAm4MSPzs47GChGKewwLFmkgOt-wMgXDTJf6Q1Rl4uABPG6QZUlGuxHxkKkXNwrZyWlZMXFlI_NukEv_bpQ01m4B64PEKAVz2sS2aCd9cqmodccOEOwUMxxsJ3ecFCWJH3j-F4"/>
+</div>
+</header>
+<main class="pt-20 pb-28 px-4 max-w-2xl mx-auto space-y-10">
+<!-- Neighborhood Badge -->
+<div class="flex justify-end">
+<div class="bg-secondary-container text-on-secondary-container px-4 py-1.5 rounded-full font-label text-[10px] font-bold tracking-wider uppercase flex items-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-[14px]" data-icon="location_on">location_on</span>
+                Your Local Amsterdam Store
+            </div>
+</div>
+<!-- Vision Agent Scanning Section -->
+<section class="space-y-6">
+<div class="text-center space-y-2">
+<h2 class="font-headline text-3xl font-extrabold tracking-tight leading-tight">Vision Agent</h2>
+<p class="text-on-surface-variant font-medium">Capture "ghost" discounts the official leaflets missed.</p>
+</div>
+<!-- Active Scan Preview -->
+<div class="relative group aspect-[4/5] rounded-[2rem] overflow-hidden bg-surface-container-lowest shadow-2xl ring-4 ring-white">
+<img class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700" data-alt="Close-up of a grocery price tag for organic peppers on a supermarket shelf with shallow depth of field" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLSt2566idiDewdnZWGyUa8ZOllOnYUxcfTAH9e7yJ9RaEcDgrGCuFd9L7Y5J1VVzbvooC4TvNohNkVCcSuj87dYoEi-i7fgyt7d0B1Md7MHGHd6Gdz9PNfz_HzhLkbJAvoNrmlRuSdJFiq4UkrI2Y9XuRhJes1ueZU1-RVMhw9pw5Bvr7BHkdXe9JpRJDVopEdsjvHcK-QOSuH9XklsPMbIppGzsxw1jLUmnh6iN2tjNCPU5HYQTtgBWg7w-nYI6gfE2l2lle_KM0"/>
+<!-- Scanning Overlay UI -->
+<div class="absolute inset-0 bg-black/10"></div>
+<div class="scanner-line"></div>
+<!-- OCR Recognition Points -->
+<div class="absolute top-1/4 left-1/4 w-12 h-12 border-2 border-primary rounded-lg opacity-80 flex items-center justify-center">
+<span class="w-1 h-1 bg-primary rounded-full animate-ping"></span>
+</div>
+<div class="absolute bottom-1/3 right-1/4 w-20 h-8 border-2 border-secondary rounded-lg opacity-80"></div>
+<!-- Live Extraction Panel (Floating Glass) -->
+<div class="absolute bottom-6 left-6 right-6 glass-card rounded-2xl p-6 border border-white/40 shadow-xl space-y-4">
+<div class="flex items-center justify-between">
+<span class="bg-primary-container text-on-primary-container text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-widest">AI Extraction</span>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" data-icon="bolt" data-weight="fill" style="font-variation-settings: 'FILL' 1;">bolt</span> Processing...
+                        </span>
+</div>
+<div class="grid grid-cols-1 gap-3">
+<div class="flex justify-between items-end border-b border-surface-container-high pb-2">
+<div class="space-y-1">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase">Product</p>
+<p class="font-headline font-bold text-lg leading-tight">Organic Red Bell Peppers (3ct)</p>
+</div>
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex justify-between items-end border-b border-surface-container-high pb-2">
+<div class="space-y-1">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase">Store</p>
+<p class="font-headline font-bold text-lg leading-tight">Albert Heijn - Dam Square</p>
+</div>
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex justify-between items-end">
+<div class="space-y-1">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase">Extracted Price</p>
+<p class="font-headline font-extrabold text-2xl text-tertiary">€ 1,89 <span class="text-sm font-medium line-through text-on-surface-variant ml-2">€ 2,95</span></p>
+</div>
+<button class="bg-primary-container text-on-primary-container px-6 py-2 rounded-xl font-bold shadow-lg active:scale-95 transition-transform">
+                                Confirm &amp; Post
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Action Button -->
+<section class="flex flex-col gap-4">
+<button class="w-full bg-primary-container text-on-primary-container py-6 rounded-[2rem] flex flex-col items-center justify-center gap-3 shadow-2xl shadow-primary/20 active:scale-95 transition-all duration-200 border-4 border-white">
+<div class="bg-white/30 p-4 rounded-full">
+<span class="material-symbols-outlined text-4xl" data-icon="photo_camera" data-weight="fill" style="font-variation-settings: 'FILL' 1;">photo_camera</span>
+</div>
+<span class="font-headline font-extrabold text-xl tracking-tight">Scan Receipt or Price Tag</span>
+</button>
+<div class="flex gap-4">
+<button class="flex-1 bg-surface-container-low py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="upload">upload</span>
+                    Gallery
+                </button>
+<button class="flex-1 bg-surface-container-low py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+                    Drafts
+                </button>
+</div>
+</section>
+<!-- Gallery Preview -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="font-headline font-bold text-xl">Recent Contributions</h3>
+<span class="text-primary font-bold text-sm">View All</span>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<!-- Gallery Card 1 -->
+<div class="bg-surface rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<div class="aspect-square bg-surface-container-high relative">
+<img class="w-full h-full object-cover" data-alt="Overhead shot of fresh supermarket produce with bright daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCt4BI84qCvXebM2VPTzGObatvHKLZZyO5y9ePmLfcEQ5SwHcxQrCBOr1KkmaUDcFQ_1DlMleY6pKO4ED9FefWPfQB9htrIfnkswDifWv_N67weXuY32vU2EVCNHJ7Dft3arLsh7hBFIwKOg9D50_KBUhydALyZE2h9HZ-YxonPunkiv2kUu_mko3YafG9WrMDXyJ7poEUgcecfkiONf9y9kjAjNbWmU4B3iO8zCtAO742AGdcxGUKz73onxhoiqH4fYKoY1KWwYhh2"/>
+<div class="absolute top-2 right-2 bg-green-500 text-white text-[8px] px-2 py-0.5 rounded-full font-bold uppercase">Verified</div>
+</div>
+<div class="p-3">
+<p class="font-bold text-sm truncate">Weekly Groceries</p>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold">Jumbo • 2h ago</p>
+</div>
+</div>
+<!-- Gallery Card 2 -->
+<div class="bg-surface rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<div class="aspect-square bg-surface-container-high relative">
+<img class="w-full h-full object-cover" data-alt="Blurred background of a retail store with focus on a shelf edge discount sticker" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6QZ2lwbreY1ff9TAp6xcs0XtcZZHVQVlXImZeBr2VLezsnyHUmBSaKTK753Vl1CEM33QTxmu5RtucgimhgFA6TnXKjkTEPjK2QC5zfxwwZRhzl7NyUQVsv4F4dRo2Lz7ykYBfxlOLkWxhypxiO5xwLVlO2t-zdHG3xthY1WJg66sUpFrmQBzpS6EZjkzET4CFCqRAntAxEpX2qx3-QPl3h2TVlac8YITJZPqIXzD9suvVq2hJapfAlIZRDllu2dKBbv76gc77QCK6"/>
+<div class="absolute top-2 right-2 bg-orange-500 text-white text-[8px] px-2 py-0.5 rounded-full font-bold uppercase">Processing</div>
+</div>
+<div class="p-3">
+<p class="font-bold text-sm truncate">Lidl Price Drop</p>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold">Lidl • 5h ago</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-2xl bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl shadow-[0_-8px_30px_rgb(0,0,0,0.04)] border-t border-slate-100/50 dark:border-slate-800/50 flex justify-around items-center px-4 pb-safe pt-2 h-20 w-full">
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="local_offer">local_offer</span>
+<span class="font-work-sans text-[10px] font-semibold tracking-wide uppercase">Feed</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-work-sans text-[10px] font-semibold tracking-wide uppercase">Kaart</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+<span class="font-work-sans text-[10px] font-semibold tracking-wide uppercase">Watchlist</span>
+</a>
+<!-- ACTIVE TAB: Scan (Vision Agent) -->
+<a class="flex flex-col items-center justify-center bg-orange-100 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 rounded-xl px-3 py-1.5 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome" data-weight="fill" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-work-sans text-[10px] font-semibold tracking-wide uppercase">Scan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-3 py-1.5 hover:text-orange-500 dark:hover:text-orange-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-work-sans text-[10px] font-semibold tracking-wide uppercase">Profiel</span>
+</a>
+</nav>
+</body></html>
