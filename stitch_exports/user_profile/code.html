@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Profile | The Digital Marktkraam</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Work+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#e97600",
+                        "inverse-on-surface": "#9a9d9e",
+                        "on-primary-fixed-variant": "#4d2300",
+                        "primary-container": "#fd8100",
+                        "on-secondary-container": "#004a79",
+                        "on-primary-fixed": "#010000",
+                        "on-tertiary": "#ffefed",
+                        "error-dim": "#b92902",
+                        "on-tertiary-fixed": "#3a0002",
+                        "surface": "#f4f7f8",
+                        "on-background": "#2b2f30",
+                        "surface-container-highest": "#d8dedf",
+                        "on-surface-variant": "#585c5d",
+                        "tertiary": "#ba0013",
+                        "surface-bright": "#f4f7f8",
+                        "on-primary-container": "#3f1b00",
+                        "error": "#b02500",
+                        "on-primary": "#fff0e8",
+                        "tertiary-fixed": "#ff9288",
+                        "tertiary-container": "#ff9288",
+                        "outline": "#747778",
+                        "surface-tint": "#914700",
+                        "secondary-fixed": "#b0d5ff",
+                        "on-tertiary-fixed-variant": "#7a0008",
+                        "primary-fixed": "#fd8100",
+                        "surface-container-high": "#dee3e5",
+                        "tertiary-dim": "#a4000f",
+                        "surface-container-low": "#eef1f2",
+                        "secondary-container": "#b0d5ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#e5e9ea",
+                        "on-secondary-fixed": "#00375b",
+                        "on-secondary": "#ecf3ff",
+                        "secondary": "#005f99",
+                        "outline-variant": "#aaaeaf",
+                        "inverse-primary": "#fd8100",
+                        "on-surface": "#2b2f30",
+                        "on-tertiary-container": "#690006",
+                        "inverse-surface": "#0b0f10",
+                        "tertiary-fixed-dim": "#ff7b70",
+                        "secondary-fixed-dim": "#94c8ff",
+                        "primary": "#914700",
+                        "surface-dim": "#cfd5d7",
+                        "primary-dim": "#7f3e00",
+                        "error-container": "#f95630",
+                        "secondary-dim": "#005387",
+                        "on-error-container": "#520c00",
+                        "on-error": "#ffefec",
+                        "surface-variant": "#d8dedf",
+                        "background": "#f4f7f8",
+                        "on-secondary-fixed-variant": "#005488"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Work Sans"],
+                        "label": ["Work Sans"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Work Sans', sans-serif; background-color: #f4f7f8; }
+        h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface">
+<!-- TopAppBar from JSON -->
+<header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-sm flex items-center justify-between px-6 h-16 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-orange-600" data-icon="storefront">storefront</span>
+<span class="text-lg font-black text-slate-900 font-plus-jakarta tracking-tight">The Digital Marktkraam</span>
+</div>
+<button class="hover:bg-slate-100/50 transition-colors active:scale-95 duration-150 p-2 rounded-full">
+<span class="material-symbols-outlined text-slate-500" data-icon="settings">settings</span>
+</button>
+</header>
+<main class="pt-24 pb-32 max-w-2xl mx-auto px-6">
+<!-- Header Section: Profile -->
+<section class="mb-10 flex flex-col items-center text-center">
+<div class="relative mb-4 group">
+<div class="w-32 h-32 rounded-full overflow-hidden shadow-xl ring-4 ring-white">
+<img alt="Sander de Vries" class="w-full h-full object-cover" data-alt="close-up portrait of a friendly man with a short beard smiling, outdoor lighting, high-end photography style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDR4jcviUmx1x36IJEb4N0KKFnqThU7HvLp7Ixx6Rkiav9vyF58K3zW1LdeJBcjtPzt1EMtPTsMjlnTYxtp2x5RrXnAUaHQF46oYwqXWHiPwMwcP_aioWtFUqDJKAC3h8MY4yH88WgQ1TyeZsujAxsdDsH-vSBL8LCRGS3aiQviMgCA2hK3SX7iycoJHycC99ILJuUdxR_G-rY5c7DsVxHiWkHvwyf58DOI1TMA6TmkGokoxbfnz8oYX3i0EypX69143T50eI0bJQdj"/>
+</div>
+<div class="absolute -bottom-2 right-0 bg-primary-container text-on-primary-container p-2 rounded-full shadow-lg">
+<span class="material-symbols-outlined text-base" data-icon="edit" data-weight="fill" style="font-variation-settings: 'FILL' 1;">edit</span>
+</div>
+</div>
+<h1 class="text-3xl font-extrabold tracking-tight text-on-surface mb-1">Sander de Vries</h1>
+<div class="inline-flex items-center bg-tertiary-container px-4 py-1.5 rounded-full">
+<span class="text-on-tertiary-container font-bold text-sm font-headline">Bespaard: €142.50</span>
+</div>
+</section>
+<!-- Savings Stats -->
+<section class="grid grid-cols-3 gap-4 mb-10">
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0_12px_32px_rgba(43,47,48,0.06)] flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary-fixed mb-2" data-icon="notifications_active">notifications_active</span>
+<span class="text-2xl font-extrabold text-on-surface">12</span>
+<span class="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Alerts</span>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0_12px_32px_rgba(43,47,48,0.06)] flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary-fixed mb-2" data-icon="wallet">wallet</span>
+<span class="text-2xl font-extrabold text-on-surface">4</span>
+<span class="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Loyalty</span>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-[0_12px_32px_rgba(43,47,48,0.06)] flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary-fixed mb-2" data-icon="local_mall">local_mall</span>
+<span class="text-2xl font-extrabold text-on-surface">86</span>
+<span class="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider">Deals</span>
+</div>
+</section>
+<!-- Loyalty Cards (Digital Wallet) -->
+<section class="mb-10">
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-xl font-bold tracking-tight">Mijn Klantenkaarten</h2>
+<span class="text-primary font-bold text-sm">Beheer</span>
+</div>
+<div class="flex gap-4 overflow-x-auto no-scrollbar pb-4 -mx-6 px-6">
+<!-- AH Card -->
+<div class="flex-shrink-0 w-72 bg-[#00adef] rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+<div class="flex justify-between items-start mb-10">
+<span class="font-bold text-lg">Albert Heijn</span>
+<span class="material-symbols-outlined opacity-50" data-icon="contactless">contactless</span>
+</div>
+<div class="bg-white p-3 rounded-lg flex flex-col items-center gap-2">
+<div class="h-12 w-full bg-slate-100 flex items-center justify-center">
+<img alt="Barcode" class="h-full object-contain mix-blend-multiply opacity-80" data-alt="illustrative black and white barcode pattern on white background for digital scanning" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDtlBnt96s7c7vQQ5Bh-LhnIz12L8Hxsg1C6CCWe5yJdoMB10OoR0gy6uGpWB3f37-euN2D8Pmc24kRwa55Zmopvzi_Xk8QfgLkxgkXbo2YgERsnSnfN-oNm1GKtvOTT1CWWV3ZD_MT29MLZqMf5wJWQ0NR_VX_LGp13g7rAlgfDW-N-E75m8yCq4gpp_TeZidynj7cPGrHbMTb0gvZXIPJuT7tmozD1rMIvNwDECqcrM-npoFvooG-vRKvyv9GIwA2mmxGIH0p_AX"/>
+</div>
+<span class="text-slate-900 text-[10px] font-mono tracking-[0.3em]">8712345678901</span>
+</div>
+</div>
+<!-- Jumbo Card -->
+<div class="flex-shrink-0 w-72 bg-[#eeb700] rounded-xl p-5 text-on-surface shadow-lg relative overflow-hidden">
+<div class="flex justify-between items-start mb-10">
+<span class="font-bold text-lg">Jumbo Extra's</span>
+<span class="material-symbols-outlined opacity-50" data-icon="contactless">contactless</span>
+</div>
+<div class="bg-white p-3 rounded-lg flex flex-col items-center gap-2">
+<div class="h-12 w-full bg-slate-100 flex items-center justify-center">
+<img alt="Barcode" class="h-full object-contain mix-blend-multiply opacity-80" data-alt="illustrative black and white barcode pattern on white background for digital scanning" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgpyA5f7ix4-Oir61wl5G74cUlJgTnhVmSXd_O3bQdc_XNgQID_e167GyKD_G6n3mZeOOCI5-41MH3m2XYDUez26E3z6Gd6jod8mdCmUfEvvlwCn0iF4mdXvDpJknK7NUyTC-PmJoJNKFQ1ggxRcItvsQs4hYP17MX0xs6Je1S8o7X6oJ0uiR4TUN2fG9J8tKpRUh_xgQVpuQBQwnXoegknFp5SllaW4OjLurIABOTgwbrfbgF0VvPCFlBE7ltmbMvMcpL8qPSE-9c"/>
+</div>
+<span class="text-slate-900 text-[10px] font-mono tracking-[0.3em]">5432109876543</span>
+</div>
+</div>
+<!-- Lidl Card -->
+<div class="flex-shrink-0 w-72 bg-[#0050aa] rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+<div class="flex justify-between items-start mb-10">
+<span class="font-bold text-lg">Lidl Plus</span>
+<span class="material-symbols-outlined opacity-50" data-icon="contactless">contactless</span>
+</div>
+<div class="bg-white p-3 rounded-lg flex flex-col items-center gap-2">
+<div class="h-12 w-full bg-slate-100 flex items-center justify-center">
+<img alt="Barcode" class="h-full object-contain mix-blend-multiply opacity-80" data-alt="illustrative black and white barcode pattern on white background for digital scanning" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG6WV7IrOFoeNfHCK1idP4sTco0adtKR7TQ6_vaQSO-rLkEEZcPiccmP5bKQv9kwAinoyv-HWIwrR6vIVDN8pE982M6ePWQoOqQvSysh668JLiierfIQMmhSAZjOL9c7z2DA6xoLBhrog0LcFvG_MoLyXEv8VLEw0GRG4G64pZaaAFqK0Hk04ic9bdlmsLrgJ--PHA4CXsrq4rrfu_ba95CnGeCvprpuD1JSortykr2mXHFd1gcjdZNhc1n0BEAb4_-NRdnzD0Lw46"/>
+</div>
+<span class="text-slate-900 text-[10px] font-mono tracking-[0.3em]">1122334455667</span>
+</div>
+</div>
+</div>
+</section>
+<!-- App Settings & Preferences -->
+<section class="space-y-6">
+<h2 class="text-xl font-bold tracking-tight mb-2">Instellingen</h2>
+<!-- High Priority Preference -->
+<div class="bg-surface-container-low p-5 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="bg-primary-container/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="notification_important">notification_important</span>
+</div>
+<div>
+<h3 class="font-bold text-on-surface">Watchlist Meldingen</h3>
+<p class="text-xs text-on-surface-variant">Ontvang pushberichten voor favorieten</p>
+</div>
+</div>
+<div class="relative inline-flex items-center cursor-pointer">
+<div class="w-11 h-6 bg-primary-container rounded-full shadow-inner"></div>
+<div class="absolute left-6 top-1 w-4 h-4 bg-white rounded-full transition-transform"></div>
+</div>
+</div>
+<!-- List Menu -->
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+<!-- Preferred Stores -->
+<button class="w-full flex items-center justify-between p-5 border-b border-surface-container-low hover:bg-surface-container-low transition-colors text-left">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="store">store</span>
+<span class="font-semibold">Mijn Winkels</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-sm text-on-surface-variant">Utrecht +3</span>
+<span class="material-symbols-outlined text-on-surface-variant text-lg" data-icon="chevron_right">chevron_right</span>
+</div>
+</button>
+<!-- Account Details -->
+<button class="w-full flex items-center justify-between p-5 border-b border-surface-container-low hover:bg-surface-container-low transition-colors text-left">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="account_circle">account_circle</span>
+<span class="font-semibold">Accountgegevens</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-lg" data-icon="chevron_right">chevron_right</span>
+</button>
+<!-- Security & Privacy -->
+<button class="w-full flex items-center justify-between p-5 hover:bg-surface-container-low transition-colors text-left">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="security">security</span>
+<span class="font-semibold">Beveiliging &amp; Privacy</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-lg" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+<!-- Logout -->
+<button class="w-full p-4 rounded-xl text-error font-bold hover:bg-error/10 transition-colors mt-4">
+                Uitloggen
+            </button>
+</section>
+</main>
+<!-- BottomNavBar from JSON -->
+<nav class="fixed bottom-0 w-full z-50 pb-safe bg-white/80 backdrop-blur-xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)] flex justify-around items-center h-20 w-full px-4">
+<a class="flex flex-col items-center gap-1 text-slate-400 active:scale-90 duration-200 hover:text-orange-500 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-work-sans text-[10px] font-semibold uppercase tracking-wider">Feed</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 active:scale-90 duration-200 hover:text-orange-500 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-work-sans text-[10px] font-semibold uppercase tracking-wider">Map</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 active:scale-90 duration-200 hover:text-orange-500 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+<span class="font-work-sans text-[10px] font-semibold uppercase tracking-wider">Watchlist</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 active:scale-90 duration-200 hover:text-orange-500 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
+<span class="font-work-sans text-[10px] font-semibold uppercase tracking-wider">Scan</span>
+</a>
+<!-- ACTIVE STATE: Profile -->
+<a class="flex flex-col items-center gap-1 text-orange-600 active:scale-90 duration-200 hover:text-orange-500 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person" data-weight="fill" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-work-sans text-[10px] font-semibold uppercase tracking-wider font-bold">Profile</span>
+</a>
+</nav>
+</body></html>

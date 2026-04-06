@@ -181,8 +181,16 @@ class HomeFeedScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: discountsAsync.when(
-                data: (discounts) {
-                  // We'll interleave some mock images to make it look like the design regardless of DB.
+                data: (deals) {
+                  if (deals.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32.0),
+                      child: Center(
+                        child: Text('Geen actuele deals in de buurt.', style: TextStyle(color: AppColors.onSurfaceVariant)),
+                      ),
+                    );
+                  }
+
                   return GridView.builder(
                     padding: EdgeInsets.zero,
                     shrinkWrap: true,
@@ -193,57 +201,28 @@ class HomeFeedScreen extends ConsumerWidget {
                       mainAxisSpacing: 16,
                       childAspectRatio: 0.65, // Adjust based on visual needs
                     ),
-                    itemCount: 4, // Just show 4 mocked items for 1:1 design mapping
+                    itemCount: deals.length,
                     itemBuilder: (context, index) {
-                      switch (index) {
-                        case 0:
-                          return const _DealGridCard(
-                            imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDQqRjWIdQ8QJq6J1Qn11M64kQqG5qJ-C6T-k5U1j9iWz6yO2m67y8_Z4KqJ9dZ4xZ3yXwP212_yvK2N6K-1kYgVXVvKXjPjV5cM2ZVX-R4Y5T9NQRQyqLJWQW-S99dKXUjJk0XyD6s0JjLwN_QpD4P1M2s2gRk9C_9XQ6N6Vd7_Z4P2r3Y3y6w5Q',
-                            title: 'Bananen Chiquita',
-                            subtitle: 'ALBERT HEIJN • 300M',
-                            price: '€1,99',
-                            oldPrice: '€2,49',
-                            badgeText: 'VERS',
-                            badgeColor: Colors.green,
-                          );
-                        case 1:
-                          return const _DealGridCard(
-                            imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD20a0bO53u2jH8qR555rXZyv8-U2G5X_yvK2N6K-1kYgVXVvKXjPjV5cM2ZVX-R4Y5T9NQRQyqLJWQW-S99dKXUjJk0XyD6s0JjLwN_QpD4P1M2s2gRk9C_9XQ6N6Vd7_Z4P2r3Y3y6w5Q',
-                            title: 'Ariel Pods Color',
-                            subtitle: 'JUMBO • 800M',
-                            price: '€14,99',
-                            oldPrice: '€29,98',
-                            badgeText: '1+1 GRATIS',
-                            badgeColor: AppColors.errorContainer,
-                          );
-                        case 2:
-                          return const _DealGridCard(
-                            imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDQqRjWIdQ8QJq6J1Qn11M64kQqG5qJ-C6T-k5U1j9iWz6yO2m67y8_Z4KqJ9dZ4xZ3yXwP212_yvK2N6K-1kYgVXVvKXjPjV5cM2ZVX-R4Y5T9NQRQyqLJWQW-S99dKXUjJk0XyD6s0JjLwN_QpD4P1M2s2gRk9C_9XQ6N6Vd7_Z4P2r3Y3y6w5Q',
-                            title: 'Coca Cola Zero 6x 330ml',
-                            subtitle: 'LIDL • 1.2KM',
-                            price: '€3,99',
-                            oldPrice: '€5,49',
-                            badgeText: '-27%',
-                            badgeColor: AppColors.primaryContainer,
-                          );
-                        case 3:
-                          return const _DealGridCard(
-                            imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDQqRjWIdQ8QJq6J1Qn11M64kQqG5qJ-C6T-k5U1j9iWz6yO2m67y8_Z4KqJ9dZ4xZ3yXwP212_yvK2N6K-1kYgVXVvKXjPjV5cM2ZVX-R4Y5T9NQRQyqLJWQW-S99dKXUjJk0XyD6s0JjLwN_QpD4P1M2s2gRk9C_9XQ6N6Vd7_Z4P2r3Y3y6w5Q',
-                            title: 'Robijn Wasmiddel 60 Wasbeurten',
-                            subtitle: 'KRUIDVAT • 450M',
-                            price: '€8,99',
-                            oldPrice: '€17,99',
-                            badgeText: 'OP=OP',
-                            badgeColor: Colors.black,
-                          );
-                        default:
-                          return const SizedBox();
-                      }
+                      final deal = deals[index];
+                      // Use generic image placeholder for now
+                      const imageUrl = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDQqRjWIdQ8QJq6J1Qn11M64kQqG5qJ-C6T-k5U1j9iWz6yO2m67y8_Z4KqJ9dZ4xZ3yXwP212_yvK2N6K-1kYgVXVvKXjPjV5cM2ZVX-R4Y5T9NQRQyqLJWQW-S99dKXUjJk0XyD6s0JjLwN_QpD4P1M2s2gRk9C_9XQ6N6Vd7_Z4P2r3Y3y6w5Q';
+                      final productName = deal['product']?.toString() ?? deal['product_name']?.toString() ?? 'Onbekend';
+                      final storeName = deal['supermarket']?.toString().toUpperCase() ?? 'STORE';
+                      final distance = deal['distance_km'] != null ? '${deal['distance_km']}km' : 'Dichtbij';
+                      return _DealGridCard(
+                        imageUrl: imageUrl,
+                        title: productName,
+                        subtitle: '$storeName • $distance',
+                        price: '€${deal['price'] ?? '--'}',
+                        oldPrice: deal['old_price'] != null ? '€${deal['old_price']}' : '',
+                        badgeText: 'DEAL',
+                        badgeColor: AppColors.tertiary,
+                      );
                     },
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e,s) => const Center(child: Text('Failed to load real deals, showing placeholders instead.')),
+                error: (e,s) => Center(child: Text('Error loading deals: $e')),
               ),
             ),
           ],
