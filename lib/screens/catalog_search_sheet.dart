@@ -151,7 +151,7 @@ class _CatalogSearchSheetState extends ConsumerState<_CatalogSearchSheet>
                 color: AppColors.surfaceContainerLowest,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: AppColors.outlineVariant.withOpacity(0.4),
+                  color: AppColors.outlineVariant.withValues(alpha: 0.4),
                 ),
                 boxShadow: const [
                   BoxShadow(
@@ -240,7 +240,7 @@ class _CatalogSearchSheetState extends ConsumerState<_CatalogSearchSheet>
         return ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
           itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          separatorBuilder: (_, _) => const SizedBox(height: 8),
           itemBuilder: (context, index) =>
               _SearchResultTile(
             item: items[index],
@@ -267,7 +267,7 @@ class _CatalogSearchSheetState extends ConsumerState<_CatalogSearchSheet>
         return ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
           itemCount: 6,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          separatorBuilder: (_, _) => const SizedBox(height: 12),
           itemBuilder: (context, _) => Container(
             height: 72,
             decoration: BoxDecoration(
@@ -343,13 +343,13 @@ class _SearchResultTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: isAdded
-            ? AppColors.primary.withOpacity(0.08)
+            ? AppColors.primary.withValues(alpha: 0.08)
             : AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isAdded
-              ? AppColors.primary.withOpacity(0.3)
-              : AppColors.outlineVariant.withOpacity(0.3),
+              ? AppColors.primary.withValues(alpha: 0.3)
+              : AppColors.outlineVariant.withValues(alpha: 0.3),
         ),
         boxShadow: [BoxShadow(color: Color(0x14000000), blurRadius: 4, offset: Offset(0, 1))],
       ),
@@ -440,7 +440,7 @@ class _Chip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(

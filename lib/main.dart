@@ -28,7 +28,7 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   } else {
-    print('⚠️ Running on Linux Desktop. Firebase initialization skipped.');
+    debugPrint('⚠️ Running on Linux Desktop. Firebase initialization skipped.');
   }
 
   runApp(const ProviderScope(child: NederlandDiscountsApp()));
@@ -86,7 +86,7 @@ class _MainDashboardState extends ConsumerState<MainDashboard> {
         margin: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
-          color: AppColors.onSurface.withOpacity(0.95), // Floating dark pill
+          color: AppColors.onSurface.withValues(alpha: 0.95), // Floating dark pill
           borderRadius: BorderRadius.circular(32),
           boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 20, offset: Offset(0, 5))],
         ),
@@ -123,7 +123,7 @@ class _NavBarIcon extends StatelessWidget {
 
     if (isSpecial) {
       return GestureDetector(
-        onTap: () => ref.read(navIndexProvider.notifier).state = index,
+        onTap: () => ref.read(navIndexProvider.notifier).setIndex(index),
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: const BoxDecoration(color: AppColors.primaryContainer, shape: BoxShape.circle),
@@ -133,7 +133,7 @@ class _NavBarIcon extends StatelessWidget {
     }
 
     return GestureDetector(
-      onTap: () => ref.read(navIndexProvider.notifier).state = index,
+      onTap: () => ref.read(navIndexProvider.notifier).setIndex(index),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

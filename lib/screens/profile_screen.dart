@@ -191,7 +191,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   scrollDirection: Axis.horizontal,
                   clipBehavior: Clip.none,
                   itemCount: _loyaltyCards.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 16),
+                  separatorBuilder: (_, _) => const SizedBox(width: 16),
                   itemBuilder: (context, i) =>
                       _LoyaltyCardWidget(data: _loyaltyCards[i]),
                 ),

@@ -465,7 +465,7 @@ class _MapCanvas extends StatelessWidget {
                 }).toList();
               },
               loading: () => [],
-              error: (_, __) => [],
+              error: (_, _) => [],
             ),
           ],
         );
@@ -786,7 +786,7 @@ class _StoreListSheet extends StatelessWidget {
                       controller: scrollController,
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
                       itemCount: grouped.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final entry = grouped.entries.elementAt(index);
                         return _StoreListTile(
@@ -1033,7 +1033,7 @@ class _StoreDealsSheet extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
               scrollDirection: Axis.vertical,
               itemCount: deals.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final deal = deals[index];
                 final name = deal['product']?.toString() ??
@@ -1294,7 +1294,7 @@ class _SheetSkeletonState extends State<_SheetSkeleton>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _ctrl,
-      builder: (_, __) {
+      builder: (_, _) {
         final t = _ctrl.value > 0.5 ? 1 - _ctrl.value : _ctrl.value;
         final color = Color.lerp(
           AppColors.surfaceContainerLow,
@@ -1304,8 +1304,8 @@ class _SheetSkeletonState extends State<_SheetSkeleton>
         return ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: 4,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
-          itemBuilder: (_, __) => Container(
+          separatorBuilder: (_, _) => const SizedBox(height: 10),
+          itemBuilder: (_, _) => Container(
             height: 80,
             decoration: BoxDecoration(
               color: color,

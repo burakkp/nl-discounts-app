@@ -24,7 +24,7 @@ class AIScanScreen extends ConsumerWidget {
 
     ImageSource source = fromGallery ? ImageSource.gallery : ImageSource.camera;
     if (!kIsWeb && Platform.isLinux && !fromGallery) {
-      print('💻 Linux detected. Opening File Explorer instead of camera...');
+      debugPrint('💻 Linux detected. Opening File Explorer instead of camera...');
       source = ImageSource.gallery;
     }
 
@@ -139,7 +139,7 @@ class AIScanScreen extends ConsumerWidget {
                         height: 2,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(colors: [Colors.transparent, AppColors.primaryContainer, Colors.transparent]),
-                          boxShadow: [BoxShadow(color: AppColors.primaryContainer.withOpacity(0.5), blurRadius: 15, spreadRadius: 2)],
+                          boxShadow: [BoxShadow(color: AppColors.primaryContainer.withValues(alpha: 0.5), blurRadius: 15, spreadRadius: 2)],
                         ),
                       ),
                     ),
@@ -150,9 +150,9 @@ class AIScanScreen extends ConsumerWidget {
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withOpacity(0.4)),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -253,7 +253,7 @@ class AIScanScreen extends ConsumerWidget {
                   color: AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(32),
                   border: Border.all(color: Colors.white, width: 4),
-                  boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 20)],
+                  boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 20)],
                 ),
                 child: Column(
                   children: [

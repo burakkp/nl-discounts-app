@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/app_providers.dart';
 import '../models/catalog_item.dart';
+import '../models/notification_history_item.dart';
 import '../models/watchlist_item.dart';
 import '../theme/app_theme.dart';
 import 'catalog_search_sheet.dart';
@@ -36,7 +37,6 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
             onPressed: () {
               // Re-add on undo
               ref.read(watchlistNotifierProvider.notifier).add(
-                    // Re-construct a CatalogItem from the WatchlistItem's data
                     _watchlistItemToCatalogItem(item),
                   );
             },
@@ -49,6 +49,7 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
   @override
   Widget build(BuildContext context) {
     final watchlistAsync = ref.watch(watchlistNotifierProvider);
+    final notifAsync = ref.watch(notificationHistoryProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -162,7 +163,7 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
@@ -195,7 +196,7 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
                     ),
                     CupertinoSwitch(
                       value: _smartNotificationsEnabled,
-                      activeColor: AppColors.primary,
+                      activeTrackColor: AppColors.primary,
                       onChanged: (val) =>
                           setState(() => _smartNotificationsEnabled = val),
                     ),
@@ -215,7 +216,7 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
                     color: AppColors.surfaceContainerLowest,
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: AppColors.outlineVariant.withOpacity(0.3),
+                      color: AppColors.outlineVariant.withValues(alpha: 0.3),
                     ),
                   ),
                   child: const Row(
@@ -260,7 +261,8 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
                     shrinkWrap: true,
                     padding: EdgeInsets.zero,
                     itemCount: items.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final item = items[index];
                       return _SwipeableWatchlistCard(
@@ -280,26 +282,105 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
 
               const SizedBox(height: 48),
 
-              // ── Recent Notifications (System Info) ────────────────────────
-              const Text(
-                'RECENTE MELDINGEN',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.outline,
-                  letterSpacing: 2.0,
-                ),
+              // ── Recent Notifications ──────────────────────────────────────
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text(
+                    'RECENTE MELDINGEN',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.outline,
+                      letterSpacing: 2.0,
+                    ),
+                  ),
+                  // "Clear All" only visible when there are real items
+                  notifAsync.maybeWhen(
+                    data: (items) => items.isNotEmpty
+                        ? TextButton(
+                            onPressed: () => ref
+                                .read(notificationHistoryProvider.notifier)
+                                .clearAll(),
+                            style: TextButton.styleFrom(
+                              minimumSize: Size.zero,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text(
+                              'Wis alles',
+                              style: TextStyle(
+                                color: AppColors.error,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                    orElse: () => const SizedBox.shrink(),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
 
-              _NotificationItem(
-                icon: Icons.notifications_active,
-                iconColor: AppColors.primary,
-                title: 'Smart Meldingen Actief',
-                description:
-                    'Je ontvangt een pushbericht zodra een product op je lijst goedkoper is bij een winkel in de buurt.',
-                time: 'SYSTEEM INFO',
-                isNew: true,
+              // Live notification list (FCM history) + pinned system card
+              notifAsync.when(
+                data: (items) => Column(
+                  children: [
+                    // Real FCM notifications — newest-first, swipe-to-dismiss
+                    ...items.map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _DismissibleNotificationCard(
+                          key: ValueKey(item.id),
+                          item: item,
+                          onDismissed: () => ref
+                              .read(notificationHistoryProvider.notifier)
+                              .delete(item.id),
+                          onTap: () => ref
+                              .read(notificationHistoryProvider.notifier)
+                              .markRead(item.id),
+                        ),
+                      ),
+                    ),
+                    // Pinned system-info card — always visible at the bottom
+                    _NotificationItem(
+                      icon: Icons.notifications_active,
+                      iconColor: AppColors.primary,
+                      title: 'Smart Meldingen Actief',
+                      description:
+                          'Je ontvangt een pushbericht zodra een product op je '
+                          'lijst goedkoper is bij een winkel in de buurt.',
+                      time: 'SYSTEEM INFO',
+                      isNew: items.isEmpty, // only highlighted when list empty
+                    ),
+                  ],
+                ),
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+                error: (_, _) => _NotificationItem(
+                  icon: Icons.notifications_active,
+                  iconColor: AppColors.primary,
+                  title: 'Smart Meldingen Actief',
+                  description:
+                      'Je ontvangt een pushbericht zodra een product op je '
+                      'lijst goedkoper is bij een winkel in de buurt.',
+                  time: 'SYSTEEM INFO',
+                  isNew: true,
+                ),
               ),
             ],
           ),
@@ -353,8 +434,7 @@ class _WatchlistItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasDiscount =
-        item.hasActiveDeal && item.discountPercent > 0;
+    final hasDiscount = item.hasActiveDeal && item.discountPercent > 0;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -432,7 +512,7 @@ class _WatchlistItemCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: item.hasActiveDeal
-                            ? AppColors.primary.withOpacity(0.1)
+                            ? AppColors.primary.withValues(alpha: 0.1)
                             : AppColors.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(6),
                       ),
@@ -566,26 +646,19 @@ class _EmptyWatchlist extends StatelessWidget {
           color: AppColors.surfaceContainerLow,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: AppColors.outlineVariant.withOpacity(0.3),
+            color: AppColors.outlineVariant.withValues(alpha: 0.3),
             style: BorderStyle.solid,
           ),
         ),
-        child: Column(
+        child: const Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceContainerLowest,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.add_shopping_cart,
-                size: 36,
-                color: AppColors.primary,
-              ),
+            Icon(
+              Icons.add_shopping_cart,
+              size: 36,
+              color: AppColors.primary,
             ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: 16),
+            Text(
               'Je lijst is leeg',
               style: TextStyle(
                 fontSize: 16,
@@ -593,8 +666,8 @@ class _EmptyWatchlist extends StatelessWidget {
                 color: AppColors.onSurface,
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: 8),
+            Text(
               'Tik hier om je eerste product toe te voegen\nen meldingen te ontvangen bij prijsdalingen.',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -678,9 +751,9 @@ class _ErrorState extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.errorContainer.withOpacity(0.1),
+        color: AppColors.errorContainer.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -688,13 +761,15 @@ class _ErrorState extends StatelessWidget {
           const SizedBox(height: 12),
           const Text(
             'Kon watchlist niet laden',
-            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.onSurface),
+            style: TextStyle(
+                fontWeight: FontWeight.bold, color: AppColors.onSurface),
           ),
           const SizedBox(height: 8),
           Text(
             error,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.onSurfaceVariant),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
@@ -712,7 +787,7 @@ class _ErrorState extends StatelessWidget {
   }
 }
 
-// ─── NOTIFICATION ITEM ───────────────────────────────────────────────────────
+// ─── NOTIFICATION ITEM (reusable card shell) ─────────────────────────────────
 
 class _NotificationItem extends StatelessWidget {
   final IconData icon;
@@ -737,11 +812,11 @@ class _NotificationItem extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isNew
-            ? AppColors.primary.withOpacity(0.05)
+            ? AppColors.primary.withValues(alpha: 0.05)
             : AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
         border: isNew
-            ? Border.all(color: AppColors.primary.withOpacity(0.2))
+            ? Border.all(color: AppColors.primary.withValues(alpha: 0.2))
             : null,
       ),
       child: Row(
@@ -751,7 +826,7 @@ class _NotificationItem extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.12),
+              color: iconColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: iconColor, size: 20),
@@ -797,7 +872,86 @@ class _NotificationItem extends StatelessWidget {
   }
 }
 
-// ─── HELPER ──────────────────────────────────────────────────────────────────
+// ─── DISMISSIBLE NOTIFICATION CARD ───────────────────────────────────────────
+
+class _DismissibleNotificationCard extends StatelessWidget {
+  final NotificationHistoryItem item;
+  final VoidCallback onDismissed;
+  final VoidCallback onTap;
+
+  const _DismissibleNotificationCard({
+    super.key,
+    required this.item,
+    required this.onDismissed,
+    required this.onTap,
+  });
+
+  IconData _iconForSupermarket(String? name) {
+    if (name == null) return Icons.local_offer_outlined;
+    final lower = name.toLowerCase();
+    if (lower.contains('albert')) return Icons.store;
+    if (lower.contains('jumbo')) return Icons.storefront;
+    if (lower.contains('lidl') || lower.contains('aldi')) {
+      return Icons.shopping_bag_outlined;
+    }
+    return Icons.local_offer_outlined;
+  }
+
+  String _relativeTime(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inSeconds < 60) return 'ZOJUIST';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}M GELEDEN';
+    if (diff.inHours < 24) return '${diff.inHours}U GELEDEN';
+    return '${diff.inDays}D GELEDEN';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isUnread = !item.isRead;
+    return Dismissible(
+      key: ValueKey(item.id),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) => onDismissed(),
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        decoration: BoxDecoration(
+          color: AppColors.error,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.delete_outline, color: Colors.white, size: 22),
+            SizedBox(height: 4),
+            Text(
+              'VERWIJDER',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+          ],
+        ),
+      ),
+      child: GestureDetector(
+        onTap: onTap,
+        child: _NotificationItem(
+          icon: _iconForSupermarket(item.supermarket),
+          iconColor: isUnread ? AppColors.primary : AppColors.onSurfaceVariant,
+          title: item.title,
+          description: item.body,
+          time: _relativeTime(item.timestamp),
+          isNew: isUnread,
+        ),
+      ),
+    );
+  }
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
 
 CatalogItem _watchlistItemToCatalogItem(WatchlistItem item) {
   return CatalogItem(

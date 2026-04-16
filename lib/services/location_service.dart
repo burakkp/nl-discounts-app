@@ -1,6 +1,6 @@
 // lib/services/location_service.dart
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:geolocator/geolocator.dart';
 
 class LocationService {
@@ -8,7 +8,7 @@ class LocationService {
 
     // 🛡️ THE BYPASS: If running on Linux desktop, return a mock location immediately
     if (!kIsWeb && Platform.isLinux) {
-      print('💻 Linux Desktop detected. Returning mock GPS for Tiel...');
+      debugPrint('💻 Linux Desktop detected. Returning mock GPS for Tiel...');
       return Position(
         latitude: 51.88,
         longitude: 5.43,
@@ -41,7 +41,7 @@ class LocationService {
       throw Exception('Location permissions are permanently denied.');
     }
 
-    print('📍 Fetching real mobile GPS location...');
-    return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    debugPrint('📍 Fetching real mobile GPS location...');
+    return await Geolocator.getCurrentPosition(locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
   }
 }

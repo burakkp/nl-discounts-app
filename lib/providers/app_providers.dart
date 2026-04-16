@@ -2,12 +2,15 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../services/location_service.dart';
+import '../services/notification_service.dart';
 import '../models/catalog_item.dart';
+import '../models/notification_history_item.dart';
 import '../models/watchlist_item.dart';
 
 // ─── SERVICE PROVIDERS ───────────────────────────────────────────────────────
@@ -43,7 +46,7 @@ final locationCityProvider = Provider<String>((ref) {
   return locationAsync.when(
     data: (pos) => _cityFromCoords(pos.latitude, pos.longitude),
     loading: () => '...',
-    error: (_, __) => 'Jouw Buurt',
+    error: (_, _) => 'Jouw Buurt',
   );
 });
 
@@ -253,3 +256,61 @@ class NavIndexNotifier extends Notifier<int> {
 
 final navIndexProvider =
     NotifierProvider<NavIndexNotifier, int>(NavIndexNotifier.new);
+
+// ─── NOTIFICATION HISTORY ────────────────────────────────────────────────────
+
+/// Manages a capped, persisted list of FCM notification payloads.
+/// Loads from SharedPreferences on init and refreshes in-memory state
+/// whenever a foreground FCM message arrives.
+class NotificationHistoryNotifier
+    extends AsyncNotifier<List<NotificationHistoryItem>> {
+  @override
+  Future<List<NotificationHistoryItem>> build() async {
+    _setupFcmListeners();
+    return NotificationService.getNotificationHistory();
+  }
+
+  // Subscribe to foreground FCM messages; cancel subscription on dispose.
+  void _setupFcmListeners() {
+    // FCM not supported on native Linux.
+    if (!kIsWeb && Platform.isLinux) return;
+
+    final sub = FirebaseMessaging.onMessage.listen((message) async {
+      final item = NotificationService.fromRemoteMessage(message);
+      await NotificationService.saveNotification(item);
+      final current = state.value ?? [];
+      state = AsyncData([item, ...current]);
+    });
+
+    ref.onDispose(sub.cancel);
+  }
+
+  /// Marks a notification as read (persisted + in-memory).
+  Future<void> markRead(String id) async {
+    await NotificationService.markRead(id);
+    state = AsyncData(
+      (state.value ?? [])
+          .map((i) => i.id == id ? i.copyWith(isRead: true) : i)
+          .toList(),
+    );
+  }
+
+  /// Removes a single notification (persisted + in-memory).
+  Future<void> delete(String id) async {
+    await NotificationService.deleteNotification(id);
+    state = AsyncData(
+      (state.value ?? []).where((i) => i.id != id).toList(),
+    );
+  }
+
+  /// Clears the entire history (persisted + in-memory).
+  Future<void> clearAll() async {
+    await NotificationService.clearHistory();
+    state = const AsyncData([]);
+  }
+}
+
+final notificationHistoryProvider = AsyncNotifierProvider<
+    NotificationHistoryNotifier, List<NotificationHistoryItem>>(
+  NotificationHistoryNotifier.new,
+);
