@@ -1,14 +1,29 @@
-// lib/services/api_service.dart
 import 'dart:io';
 import 'dart:convert';
 import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 import '../models/catalog_item.dart';
 import '../models/watchlist_item.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://nl-discount.onrender.com';
+  static String get baseUrl {
+    // 💡 THE ARCHITECT'S CHOICE:
+    // We use a compile-time constant to toggle between Local and Prod.
+    // Run with: flutter run --dart-define=IS_LOCAL=true to use localhost.
+    const bool isLocal = bool.fromEnvironment('IS_LOCAL', defaultValue: false);
+
+    if (!isLocal) {
+      return 'https://nl-discounts-api.onrender.com';
+    }
+
+    // --- DEVELOPMENT FALLBACKS ---
+    if (kIsWeb) return 'http://localhost:8000';
+    if (Platform.isAndroid) return 'http://10.0.2.2:8000';
+    return 'http://localhost:8000';
+  }
+
   final AuthService _authService = AuthService();
 
   // ─── AI SCAN ────────────────────────────────────────────────────────────────
@@ -79,6 +94,35 @@ class ApiService {
     } catch (e) {
       log('❌ API Service Error: $e');
       throw Exception('Network error: $e');
+    }
+  }
+
+  // ─── WEEKLY DISCOUNTS ────────────────────────────────────────────────────────
+
+  Future<List<dynamic>> getThisWeekDiscounts({
+    String? store,
+    String? dealType,
+  }) async {
+    final queryParams = <String, String>{};
+    if (store != null) queryParams['store'] = store;
+    if (dealType != null) queryParams['deal_type'] = dealType;
+
+    final uri = Uri.parse('$baseUrl/discounts/this-week')
+        .replace(queryParameters: queryParams);
+
+    try {
+      log('📅 Fetching weekly deals: $uri');
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        return decoded['data'] as List<dynamic>;
+      } else {
+        throw Exception('Failed to load weekly deals: ${response.statusCode}');
+      }
+    } catch (e) {
+      log('❌ Weekly Fetch Error: $e');
+      return []; // Return empty list on error to keep UI stable
     }
   }
 

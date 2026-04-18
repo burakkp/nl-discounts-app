@@ -85,6 +85,11 @@ final discountsProvider = FutureProvider<List<dynamic>>((ref) async {
   );
 });
 
+final thisWeekDiscountsProvider = FutureProvider<List<dynamic>>((ref) async {
+  final apiService = ref.read(apiServiceProvider);
+  return await apiService.getThisWeekDiscounts();
+});
+
 // ─── HOME FEED CATEGORY FILTER ───────────────────────────────────────────────
 
 /// Simple Notifier wrapping the active category string.
@@ -136,7 +141,8 @@ const Map<String, List<String>> _categoryKeywords = {
 /// [activeCategoryProvider]. Filtering is entirely local — no extra API call.
 final filteredDiscountsProvider =
     Provider<AsyncValue<List<dynamic>>>((ref) {
-  final discountsAsync = ref.watch(discountsProvider);
+  // Use the general weekly deals for the main feed
+  final discountsAsync = ref.watch(thisWeekDiscountsProvider);
   final category = ref.watch(activeCategoryProvider);
 
   if (category == 'Alle') return discountsAsync;

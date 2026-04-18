@@ -105,7 +105,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     final city            = ref.watch(locationCityProvider);
     final activeCategory  = ref.watch(activeCategoryProvider);
     final filteredAsync   = ref.watch(filteredDiscountsProvider);
-    final discountsAsync  = ref.watch(discountsProvider);      // raw, for hero
+    final weeklyAsync     = ref.watch(thisWeekDiscountsProvider);      // raw, for hero
     final watchlistAsync  = ref.watch(watchlistNotifierProvider);
 
     // Count watchlist items that currently have an active deal
@@ -115,8 +115,8 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
         0;
 
     // Best live deal for hero (first item from full unfiltered list)
-    final heroDeal = discountsAsync.value?.isNotEmpty == true
-        ? discountsAsync.value!.first as Map<String, dynamic>
+    final heroDeal = weeklyAsync.value?.isNotEmpty == true
+        ? weeklyAsync.value!.first as Map<String, dynamic>
         : null;
 
     return Scaffold(
@@ -125,7 +125,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
         children: [
           // ── Scrollable content ──────────────────────────────────────────
           RefreshIndicator(
-            onRefresh: () => ref.refresh(discountsProvider.future),
+            onRefresh: () => ref.refresh(thisWeekDiscountsProvider.future),
             color: AppColors.primary,
             child: CustomScrollView(
               controller: _scroll,
@@ -214,7 +214,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                       child: _ErrorBanner(
                         message: e.toString(),
                         onRetry: () =>
-                            ref.refresh(discountsProvider.future),
+                            ref.refresh(thisWeekDiscountsProvider.future),
                       ),
                     ),
                     data: (deals) {
