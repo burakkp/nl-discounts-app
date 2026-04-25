@@ -85,9 +85,15 @@ class AIScanScreen extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.secondaryContainer,
+                  color: AppColors.surfaceContainerLowest,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color.fromRGBO(43, 47, 48, 0.06),
+                      blurRadius: 32,
+                      offset: Offset(0, 12),
+                    ),
+                  ],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -250,20 +256,29 @@ class AIScanScreen extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, Color(0xFFF57C00)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: Colors.white, width: 4),
-                  boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 20)],
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color.fromRGBO(43, 47, 48, 0.06),
+                      blurRadius: 32,
+                      offset: Offset(0, 12),
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: const BoxDecoration(color: Colors.white30, shape: BoxShape.circle),
-                      child: const Icon(Icons.photo_camera, size: 36, color: AppColors.onPrimaryContainer),
+                      child: const Icon(Icons.photo_camera, size: 36, color: Colors.white),
                     ),
                     const SizedBox(height: 12),
-                    Text('Scan Receipt or Price Tag', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                    Text('Scan Receipt or Price Tag', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, color: Colors.white)),
                   ],
                 ),
               ),
@@ -358,7 +373,17 @@ class _GalleryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)]),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+              color: Color.fromRGBO(43, 47, 48, 0.06),
+              blurRadius: 32,
+              offset: Offset(0, 12),
+            ),
+          ],
+        ),
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

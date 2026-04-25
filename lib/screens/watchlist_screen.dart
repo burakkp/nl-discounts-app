@@ -215,9 +215,13 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.surfaceContainerLowest,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: AppColors.outlineVariant.withValues(alpha: 0.3),
-                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromRGBO(43, 47, 48, 0.06),
+                        blurRadius: 32,
+                        offset: Offset(0, 12),
+                      ),
+                    ],
                   ),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -442,7 +446,11 @@ class _WatchlistItemCard extends StatelessWidget {
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+          BoxShadow(
+            color: Color.fromRGBO(43, 47, 48, 0.06),
+            blurRadius: 32,
+            offset: Offset(0, 12),
+          ),
         ],
       ),
       child: Row(
@@ -645,10 +653,6 @@ class _EmptyWatchlist extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerLow,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: AppColors.outlineVariant.withValues(alpha: 0.3),
-            style: BorderStyle.solid,
-          ),
         ),
         child: const Column(
           children: [
@@ -753,7 +757,6 @@ class _ErrorState extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.errorContainer.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [

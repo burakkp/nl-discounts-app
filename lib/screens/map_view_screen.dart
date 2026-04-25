@@ -202,14 +202,11 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen>
                               color: AppColors.surfaceContainerLowest
                                   .withAlpha(230),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.white.withAlpha(180),
-                                width: 1.5,
-                              ),
                               boxShadow: const [
                                 BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 8,
+                                  color: Color.fromRGBO(43, 47, 48, 0.06),
+                                  blurRadius: 32,
+                                  offset: Offset(0, 12),
                                 ),
                               ],
                             ),
@@ -255,8 +252,9 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen>
                                 shape: BoxShape.circle,
                                 boxShadow: const [
                                   BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 8,
+                                    color: Color.fromRGBO(43, 47, 48, 0.06),
+                                    blurRadius: 32,
+                                    offset: Offset(0, 12),
                                   ),
                                 ],
                               ),
@@ -296,16 +294,11 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen>
                                       : AppColors.surfaceContainerLowest
                                           .withAlpha(220),
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: isActive
-                                        ? AppColors.primary
-                                        : Colors.white.withAlpha(180),
-                                    width: 1.5,
-                                  ),
                                   boxShadow: const [
                                     BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 4,
+                                      color: Color.fromRGBO(43, 47, 48, 0.06),
+                                      blurRadius: 32,
+                                      offset: Offset(0, 12),
                                     ),
                                   ],
                                 ),
@@ -730,9 +723,9 @@ class _StoreListSheet extends StatelessWidget {
             borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black12,
-                blurRadius: 20,
-                offset: Offset(0, -4),
+                color: Color.fromRGBO(43, 47, 48, 0.06),
+                blurRadius: 32,
+                offset: Offset(0, -12),
               ),
             ],
           ),

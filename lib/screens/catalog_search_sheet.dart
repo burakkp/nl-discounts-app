@@ -151,13 +151,13 @@ class _CatalogSearchSheetState extends ConsumerState<_CatalogSearchSheet>
                 color: AppColors.surfaceContainerLowest,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: AppColors.outlineVariant.withValues(alpha: 0.4),
+                  color: AppColors.outlineVariant.withValues(alpha: 0.2), // Ghost border
                 ),
                 boxShadow: const [
                   BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
+                    color: Color.fromRGBO(43, 47, 48, 0.06),
+                    blurRadius: 32,
+                    offset: Offset(0, 12),
                   ),
                 ],
               ),
@@ -346,12 +346,13 @@ class _SearchResultTile extends StatelessWidget {
             ? AppColors.primary.withValues(alpha: 0.08)
             : AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isAdded
-              ? AppColors.primary.withValues(alpha: 0.3)
-              : AppColors.outlineVariant.withValues(alpha: 0.3),
-        ),
-        boxShadow: [BoxShadow(color: Color(0x14000000), blurRadius: 4, offset: Offset(0, 1))],
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(43, 47, 48, 0.06),
+            blurRadius: 32,
+            offset: Offset(0, 12),
+          )
+        ],
       ),
       child: Row(
         children: [

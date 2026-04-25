@@ -105,19 +105,8 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     final city            = ref.watch(locationCityProvider);
     final activeCategory  = ref.watch(activeCategoryProvider);
     final filteredAsync   = ref.watch(filteredDiscountsProvider);
-    final weeklyAsync     = ref.watch(thisWeekDiscountsProvider);      // raw, for hero
-    final watchlistAsync  = ref.watch(watchlistNotifierProvider);
-
-    // Count watchlist items that currently have an active deal
-    final dropCount = watchlistAsync.value
-            ?.where((i) => i.hasActiveDeal)
-            .length ??
-        0;
-
-    // Best live deal for hero (first item from full unfiltered list)
-    final heroDeal = weeklyAsync.value?.isNotEmpty == true
-        ? weeklyAsync.value!.first as Map<String, dynamic>
-        : null;
+    final weeklyAsync     = ref.watch(thisWeekDiscountsProvider);
+    // Weekly deals are used directly in _HeroBento
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -133,13 +122,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
               slivers: [
                 const SliverToBoxAdapter(child: SizedBox(height: 100)),
 
-                // City badge + categories
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: _LocationBadge(city: city),
-                  ),
-                ),
+                // Top spacing under floating header
                 const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
                 // Category chips
@@ -159,8 +142,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: _HeroBento(
-                      heroDeal: heroDeal,
-                      dropCount: dropCount,
+                      weeklyDeals: weeklyAsync.value,
                       onWatchlistTap: () =>
                           ref.read(navIndexProvider.notifier).setIndex(2),
                     ),
@@ -210,22 +192,18 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   sliver: filteredAsync.when(
                     loading: () => const _SkeletonGrid(),
-                    error: (e, _) => SliverToBoxAdapter(
-                      child: _ErrorBanner(
-                        message: e.toString(),
-                        onRetry: () =>
-                            ref.refresh(thisWeekDiscountsProvider.future),
-                      ),
+                    error: (e, _) => _ErrorBanner(
+                      message: e.toString(),
+                      onRetry: () =>
+                          ref.refresh(thisWeekDiscountsProvider.future),
                     ),
                     data: (deals) {
                       if (deals.isEmpty) {
-                        return SliverToBoxAdapter(
-                          child: _EmptyCategory(
-                            category: activeCategory,
-                            onReset: () => ref
-                                .read(activeCategoryProvider.notifier)
-                                .setCategory('Alle'),
-                          ),
+                        return _EmptyCategory(
+                          category: activeCategory,
+                          onReset: () => ref
+                              .read(activeCategoryProvider.notifier)
+                              .setCategory('Alle'),
                         );
                       }
                       return SliverGrid(
@@ -236,6 +214,8 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                             final name = deal['product']?.toString() ??
                                 deal['product_name']?.toString() ??
                                 'Onbekend';
+                            // Use the slug for watchlist ID so backend can match it
+                            final slug = deal['product_slug']?.toString() ?? name;
                             final store =
                                 deal['supermarket']?.toString() ?? '';
                             final dist = deal['distance_km'] != null
@@ -257,10 +237,11 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                               badgeText: badge,
                               badgeColor: _badgeColor(badge),
                               storeColor: _storeColor(store),
+                              imageUrl: deal['image_url']?.toString(),
                               onAddToWatchlist: () {
                                 ref
                                     .read(watchlistNotifierProvider.notifier)
-                                    .add(CatalogItem(id: name, name: name, supermarket: store));
+                                    .add(CatalogItem(id: slug, name: name, supermarket: store));
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text('✅ "$name" aan lijst toegevoegd!'),
@@ -314,6 +295,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
                       child: _SearchBar(
+                        city: city,
                         onTap: () => showCatalogSearchSheet(context),
                       ),
                     ),
@@ -331,132 +313,55 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
 // ─── SEARCH BAR ──────────────────────────────────────────────────────────────
 
 class _SearchBar extends StatelessWidget {
+  final String city;
   final VoidCallback onTap;
-  const _SearchBar({required this.onTap});
+  const _SearchBar({required this.city, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Row(
-        children: [
-          Expanded(
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: onTap,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: AppColors.surfaceContainerLowest,
+                color: AppColors.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(32),
-                border: Border.all(
-                  color: AppColors.outlineVariant.withAlpha(120),
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
               ),
               child: const Row(
                 children: [
                   Icon(Icons.search_rounded, color: AppColors.outline),
                   SizedBox(width: 12),
-                  Text(
-                    'Zoek naar producten...',
-                    style: TextStyle(
-                      color: AppColors.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  Text('Zoek naar producten...', style: TextStyle(color: AppColors.onSurfaceVariant)),
                 ],
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.all(13),
-            decoration: BoxDecoration(
-              color: AppColors.secondaryContainer,
-              shape: BoxShape.circle,
-              boxShadow: const [
-                BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 3)),
-              ],
-            ),
-            child: const Icon(
-              Icons.location_on_rounded,
-              color: AppColors.onSecondaryContainer,
-              size: 22,
-            ),
+        ),
+        const SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.secondaryContainer,
+            borderRadius: BorderRadius.circular(16),
           ),
-        ],
-      ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.location_on_rounded, color: AppColors.onSecondaryContainer, size: 16),
+              const SizedBox(width: 6),
+              Text('JE LOKALE ${city.toUpperCase()} STORE', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.onSecondaryContainer, letterSpacing: 1.0)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
 
-// ─── LOCATION BADGE ──────────────────────────────────────────────────────────
 
-class _LocationBadge extends StatelessWidget {
-  final String city;
-  const _LocationBadge({required this.city});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: const BoxDecoration(
-              color: Color(0xFF4CAF50),
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Text(
-            'JE LOKALE',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: AppColors.onSurfaceVariant,
-              letterSpacing: 1.5,
-            ),
-          ),
-          const SizedBox(width: 8),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: Text(
-              city.toUpperCase(),
-              key: ValueKey(city),
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w900,
-                color: AppColors.onSurface,
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          const Text(
-            'DEALS',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: AppColors.onSurfaceVariant,
-              letterSpacing: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // ─── CATEGORY BAR ────────────────────────────────────────────────────────────
 
@@ -482,45 +387,32 @@ class _CategoryBar extends StatelessWidget {
                 duration: const Duration(milliseconds: 250),
                 curve: Curves.easeOut,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 20, vertical: 12,
+                  horizontal: 20, vertical: 10,
                 ),
                 decoration: BoxDecoration(
                   color: isActive
-                      ? AppColors.onSurface
-                      : AppColors.surfaceContainerLowest,
+                      ? AppColors.primaryContainer
+                      : AppColors.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: isActive
-                        ? Colors.transparent
-                        : AppColors.outlineVariant.withAlpha(80),
-                  ),
-                  boxShadow: isActive
-                      ? const [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 10,
-                            offset: Offset(0, 4),
-                          ),
-                        ]
-                      : null,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       cat.icon,
-                      size: 16,
+                      size: 18,
                       color: isActive
-                          ? AppColors.surface
-                          : AppColors.outline,
+                          ? AppColors.onPrimaryContainer
+                          : AppColors.onSurfaceVariant,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       cat.label,
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                         color: isActive
-                            ? AppColors.surface
+                            ? AppColors.onPrimaryContainer
                             : AppColors.onSurfaceVariant,
                       ),
                     ),
@@ -538,211 +430,171 @@ class _CategoryBar extends StatelessWidget {
 // ─── HERO BENTO ──────────────────────────────────────────────────────────────
 
 class _HeroBento extends StatelessWidget {
-  final Map<String, dynamic>? heroDeal;
-  final int dropCount;
+  final List<dynamic>? weeklyDeals;
   final VoidCallback onWatchlistTap;
 
   const _HeroBento({
-    required this.heroDeal,
-    required this.dropCount,
+    required this.weeklyDeals,
     required this.onWatchlistTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final productName = heroDeal != null
-        ? (heroDeal!['product']?.toString() ??
-            heroDeal!['product_name']?.toString() ??
-            'Top Deal')
-        : 'Top Deal';
+    final hasDeals = weeklyDeals != null && weeklyDeals!.isNotEmpty;
+    final primaryDeal = hasDeals ? weeklyDeals![0] as Map<String, dynamic> : null;
+    final secondaryDeal = (hasDeals && weeklyDeals!.length > 1) ? weeklyDeals![1] as Map<String, dynamic> : null;
 
-    final badge = heroDeal != null ? _dealBadge(heroDeal!) : 'DEAL';
-    final price = heroDeal != null ? _parseDouble(heroDeal!['price']) : null;
-    final store = heroDeal?['supermarket']?.toString() ?? '';
+    final heroTitle = primaryDeal != null 
+        ? (primaryDeal['product']?.toString() ?? primaryDeal['product_name']?.toString() ?? 'Mega Deal') 
+        : 'Verse Hollandse Aardbeien';
+    final heroSubtitle = primaryDeal != null ? '500 gram • Zoet en sappig van de lokale teler' : '500 gram • Zoet en sappig van de lokale teler';
+    final heroPrice = primaryDeal != null ? _parseDouble(primaryDeal['price'])?.toStringAsFixed(2) ?? '2.49' : '2.49';
+    final heroOldPrice = primaryDeal != null ? _parseDouble(primaryDeal['old_price'])?.toStringAsFixed(2) ?? '4.99' : '4.99';
+    final heroImg = primaryDeal?['image_url']?.toString() ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuCmwV_NAj9y2JLv4AYdlAl_KoJetxnMLaOgiFLskwZ3NxwZim4COZzQwx8U1972tetSYUFJe6GaXjDXlw8aCHKK-N5d2-rE6IlXGKuh8v3VsQi-7MTdxXa38tDqvOy2-ogLUE-Jk9mbqLVVLGXCg0EWmwM_jO3bWBRoet3AtVkUiC9HwQfvBUWMQjCDh2ja637rGRWXV_llI7E2AQ7H1pwbzfKT1j0jDdulaMZG0_iV23lReySljtWIlQJ077PGVz-fuESD4MtztEWM';
 
-    // Truncate long product names to 2 words for the hero card
-    final heroTitle = productName.split(' ').take(2).join('\n');
+    final secTitle = secondaryDeal != null 
+        ? (secondaryDeal['product']?.toString() ?? secondaryDeal['product_name']?.toString() ?? 'Lidl Favoriet') 
+        : 'Biologische Olijfolie';
+    final secStore = secondaryDeal?['supermarket']?.toString() ?? 'Lidl Favoriet';
+    final secImg = secondaryDeal?['image_url']?.toString() ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuCEflAnx9828lkcnI-5bAnLUHRpGfEgZitFxsXmpFf5i6RV6aJKire5jaY8KuSwOna9ND9A27pGQ9hQCh3UpXZnlB4dpTDvChcbIog3_JjkasrxFNySYIiZTFqxMTA2NXXPikGN4V7rWqw_17g3pCZ4dF8odnNT3yVplczsEsbn_4qT0wW8Hr9mMqa8tdr5KQuTL6bSzPvLCtbD1BxIoFBxoFGfZ7nskiYzo7YO1bsMdd4OmN_dEiksOh-YP8U17BoedH-31rBR-L1L';
 
-    return Row(
-      children: [
-        // Mega deal card
-        Expanded(
-          flex: 6,
-          child: Container(
-            height: 210,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.orange600],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(32),
+    return LayoutBuilder(builder: (context, constraints) {
+      final isDesktop = constraints.maxWidth > 600;
+      final heroWidget = Container(
+        height: 380,
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: const [
+            BoxShadow(
+              color: Color.fromRGBO(43, 47, 48, 0.06),
+              blurRadius: 32,
+              offset: Offset(0, 12),
             ),
-            child: Column(
+          ],
+        ),
+        child: Stack(
+          children: [
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(220),
-                        borderRadius: BorderRadius.circular(16),
+                        color: AppColors.tertiaryContainer,
+                        borderRadius: BorderRadius.circular(8),
                       ),
+                      child: const Text('MEGA DEAL', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.onTertiaryContainer, letterSpacing: 1.5)),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: 250,
                       child: Text(
-                        badge,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.primary,
-                          letterSpacing: 1.5,
-                        ),
+                        heroTitle,
+                        style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: AppColors.onSurface, height: 1.1),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (store.isNotEmpty) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(60),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          store.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ),
-                    ],
+                    const SizedBox(height: 8),
+                    Text(heroSubtitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.onSurfaceVariant)),
                   ],
                 ),
-                const Spacer(),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 400),
-                  child: Text(
-                    heroTitle,
-                    key: ValueKey(heroTitle),
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      height: 1.1,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('€ $heroOldPrice', style: const TextStyle(fontSize: 16, decoration: TextDecoration.lineThrough, color: AppColors.outline, fontWeight: FontWeight.w500)),
+                        Text('€ $heroPrice', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: AppColors.tertiary, height: 1.0)),
+                      ],
                     ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                if (price != null)
-                  Text(
-                    '€${price.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      letterSpacing: -2,
-                    ),
-                  )
-                else
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      const Text(
-                        '1+1',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: -2,
-                        ),
+                    const SizedBox(width: 16),
+                    ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryContainer,
+                        foregroundColor: AppColors.onPrimaryContainer,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'GRATIS',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white.withAlpha(200),
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                    ],
-                  ),
+                      child: const Text('Nu Bekijken', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    )
+                  ],
+                )
               ],
             ),
-          ),
-        ),
-
-        const SizedBox(width: 16),
-
-        // Watchlist shortcut card
-        Expanded(
-          flex: 4,
-          child: GestureDetector(
-            onTap: onWatchlistTap,
-            child: Container(
-              height: 210,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.secondaryContainer,
-                borderRadius: BorderRadius.circular(32),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.favorite_rounded,
-                      color: AppColors.tertiary,
-                      size: 20,
-                    ),
-                  ),
-                  const Spacer(),
-                  const Text(
-                    'Jouw\nLijst',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.onSecondaryContainer,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: Text(
-                      dropCount > 0
-                          ? '$dropCount PRIJSDROPS'
-                          : 'GEEN DROPS',
-                      key: ValueKey(dropCount),
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.secondary,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                  ),
-                ],
+            Positioned(
+              right: -40,
+              bottom: -20,
+              child: SizedBox(
+                width: 200,
+                height: 200,
+                child: Image.network(heroImg, fit: BoxFit.cover, errorBuilder: (c, e, s) => const SizedBox.shrink()),
               ),
             ),
-          ),
+          ],
         ),
-      ],
-    );
+      );
+
+      final secondaryWidget = Container(
+        height: 380,
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: AppColors.secondaryContainer.withAlpha(80),
+          borderRadius: BorderRadius.circular(32),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(secStore.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.onSecondaryContainer.withAlpha(180), letterSpacing: 1.5)),
+                const SizedBox(height: 4),
+                Text(secTitle, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.onSecondaryContainer, height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
+              ],
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(color: AppColors.tertiary, borderRadius: BorderRadius.circular(12)),
+              child: const Text('2e HALVE PRIJS', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+            ),
+            Center(
+              child: SizedBox(
+                height: 140,
+                child: Image.network(secImg, fit: BoxFit.contain, errorBuilder: (c, e, s) => const SizedBox.shrink()),
+              ),
+            )
+          ],
+        ),
+      );
+
+      if (isDesktop) {
+        return Row(
+          children: [
+            Expanded(flex: 7, child: heroWidget),
+            const SizedBox(width: 24),
+            Expanded(flex: 5, child: secondaryWidget),
+          ],
+        );
+      } else {
+        return Column(
+          children: [
+            heroWidget,
+            const SizedBox(height: 24),
+            secondaryWidget,
+          ],
+        );
+      }
+    });
   }
 }
 
@@ -756,6 +608,7 @@ class _DealGridCard extends StatefulWidget {
   final String badgeText;
   final Color badgeColor;
   final Color storeColor;
+  final String? imageUrl;
   final VoidCallback onAddToWatchlist;
 
   const _DealGridCard({
@@ -766,6 +619,7 @@ class _DealGridCard extends StatefulWidget {
     required this.badgeText,
     required this.badgeColor,
     required this.storeColor,
+    this.imageUrl,
     required this.onAddToWatchlist,
   });
 
@@ -774,178 +628,100 @@ class _DealGridCard extends StatefulWidget {
 }
 
 class _DealGridCardState extends State<_DealGridCard> {
-  bool _showAdd = false;
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onLongPress: () => setState(() => _showAdd = !_showAdd),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(28),
-          border: _showAdd
-              ? Border.all(color: AppColors.primary.withAlpha(120), width: 2)
-              : null,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Image area — store color accent background
-                Expanded(
-                  flex: 5,
-                  child: Container(
-                    width: double.infinity,
-                    color: widget.storeColor.withAlpha(18),
-                    child: Stack(
-                      children: [
-                        Center(
-                          child: Icon(
-                            Icons.shopping_basket_rounded,
-                            size: 52,
-                            color: widget.storeColor.withAlpha(90),
-                          ),
+      onLongPress: widget.onAddToWatchlist,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: _isHovered ? AppColors.surfaceContainerHigh : AppColors.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image and badge container
+              Expanded(
+                flex: 5,
+                child: Stack(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: AnimatedScale(
+                          scale: _isHovered ? 1.1 : 1.0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOut,
+                          child: widget.imageUrl != null 
+                              ? Image.network(widget.imageUrl!, fit: BoxFit.contain, errorBuilder: (c,e,s) => Center(child: Icon(Icons.shopping_basket_rounded, color: widget.storeColor.withAlpha(50), size: 40)))
+                              : Center(child: Icon(Icons.shopping_basket_rounded, color: widget.storeColor.withAlpha(50), size: 40)),
                         ),
-                        // Store color bar at bottom of image area
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            height: 3,
-                            color: widget.storeColor.withAlpha(180),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                    Positioned(
+                      top: -4,
+                      left: -4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: widget.badgeColor,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          widget.badgeText,
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.5),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-
-                // Info area
-                Expanded(
-                  flex: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
+              ),
+              const SizedBox(height: 12),
+              // Text Content
+              Expanded(
+                flex: 4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                height: 1.2,
-                                color: AppColors.onSurface,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.subtitle,
-                              style: const TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.onSurfaceVariant,
-                                letterSpacing: 0.8,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              widget.price,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 20,
-                                color: widget.price == '--'
-                                    ? AppColors.onSurfaceVariant
-                                    : AppColors.primary,
-                              ),
-                            ),
-                            if (widget.oldPrice.isNotEmpty) ...[
-                              const SizedBox(width: 4),
-                              Text(
-                                widget.oldPrice,
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  decoration: TextDecoration.lineThrough,
-                                  color: AppColors.outline,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
+                        Text(widget.subtitle.split(' • ').first, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: widget.storeColor, letterSpacing: 1.5, height: 1.0)),
+                        const SizedBox(height: 4),
+                        Text(widget.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.onSurface, height: 1.2), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 2),
+                        Text(widget.subtitle.split(' • ').last, style: const TextStyle(fontSize: 10, color: AppColors.onSurfaceVariant)),
                       ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-
-            // Deal badge
-            Positioned(
-              top: 10,
-              left: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: widget.badgeColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  widget.badgeText,
-                  style: const TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: 0.8,
-                  ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(widget.price, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: widget.price == '--' ? AppColors.onSurfaceVariant : AppColors.tertiary)),
+                        if (widget.oldPrice.isNotEmpty) ...[
+                          const SizedBox(width: 4),
+                          Text(widget.oldPrice, style: const TextStyle(fontSize: 12, decoration: TextDecoration.lineThrough, color: AppColors.outline)),
+                        ],
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ),
-
-            // Long-press add-to-watchlist overlay
-            AnimatedOpacity(
-              opacity: _showAdd ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 200),
-              child: Positioned(
-                top: 8,
-                right: 8,
-                child: GestureDetector(
-                  onTap: () {
-                    widget.onAddToWatchlist();
-                    setState(() => _showAdd = false);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.add,
-                      size: 18,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1069,7 +845,6 @@ class _ErrorBanner extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.errorContainer.withAlpha(30),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.error.withAlpha(80)),
         ),
         child: Column(
           children: [

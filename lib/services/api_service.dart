@@ -12,7 +12,7 @@ class ApiService {
     // 💡 THE ARCHITECT'S CHOICE:
     // We use a compile-time constant to toggle between Local and Prod.
     // Run with: flutter run --dart-define=IS_LOCAL=true to use localhost.
-    const bool isLocal = bool.fromEnvironment('IS_LOCAL', defaultValue: false);
+    const bool isLocal = bool.fromEnvironment('IS_LOCAL', defaultValue: true);
 
     if (!isLocal) {
       return 'https://nl-discounts-api.onrender.com';
