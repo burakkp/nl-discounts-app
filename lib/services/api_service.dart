@@ -96,16 +96,47 @@ class ApiService {
       throw Exception('Network error: $e');
     }
   }
+  
+  // ─── NEARBY STORES ─────────────────────────────────────────────────────────
+
+  Future<List<dynamic>> getNearbyStores(double lat, double lng) async {
+    final token = await _authService.getValidToken();
+    final uri = Uri.parse('$baseUrl/stores/nearby?lat=$lat&lng=$lng');
+    
+    try {
+      log('🏪 Fetching nearby stores: $uri');
+      final response = await http.get(
+        uri,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        return decoded['data'] as List<dynamic>;
+      }
+      return [];
+    } catch (e) {
+      log('❌ Nearby Stores Fetch Error: $e');
+      return [];
+    }
+  }
 
   // ─── WEEKLY DISCOUNTS ────────────────────────────────────────────────────────
 
   Future<List<dynamic>> getThisWeekDiscounts({
     String? store,
     String? dealType,
+    String? query,
+    int page = 1,
+    int pageSize = 20,
   }) async {
-    final queryParams = <String, String>{};
+    final queryParams = <String, String>{
+      'page': page.toString(),
+      'page_size': pageSize.toString(),
+    };
     if (store != null) queryParams['store'] = store;
     if (dealType != null) queryParams['deal_type'] = dealType;
+    if (query != null) queryParams['query'] = query;
 
     final uri = Uri.parse('$baseUrl/discounts/this-week')
         .replace(queryParameters: queryParams);
@@ -221,7 +252,15 @@ class ApiService {
                   .contains(item.productId.toLowerCase()),
           orElse: () => {},
         );
-        return item.enrichWith(match.isEmpty ? null : match);
+        final enriched = item.enrichWith(match.isEmpty ? null : match);
+        // Mock: if it has a deal, simulate that we were notified recently
+        if (enriched.hasActiveDeal && enriched.lastNotifiedAt == null) {
+          return enriched.copyWith(
+            lastNotifiedAt:
+                DateTime.now().subtract(const Duration(minutes: 42)),
+          );
+        }
+        return enriched;
       }).toList();
     } catch (_) {
       // If enrichment fails (e.g. geolocator not available on Linux),

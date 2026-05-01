@@ -85,81 +85,107 @@ final discountsProvider = FutureProvider<List<dynamic>>((ref) async {
   );
 });
 
-final thisWeekDiscountsProvider = FutureProvider<List<dynamic>>((ref) async {
-  final apiService = ref.read(apiServiceProvider);
-  return await apiService.getThisWeekDiscounts();
+final nearbyStoresProvider = FutureProvider<List<dynamic>>((ref) async {
+  final pos = await ref.watch(locationProvider.future);
+  return ref.read(apiServiceProvider).getNearbyStores(pos.latitude, pos.longitude);
 });
 
-// ─── HOME FEED CATEGORY FILTER ───────────────────────────────────────────────
+class ThisWeekDiscountsNotifier extends AsyncNotifier<List<dynamic>> {
+  int _currentPage = 1;
+  bool _hasMore = true;
+  bool _isLoadingMore = false;
 
-/// Simple Notifier wrapping the active category string.
-class _ActiveCategoryNotifier extends Notifier<String> {
+  bool get hasMore => _hasMore;
+  bool get isLoadingMore => _isLoadingMore;
+
   @override
-  String build() => 'Alle';
-  void setCategory(String category) => state = category;
+  Future<List<dynamic>> build() async {
+    // Watch store and search query to auto-refresh when they change
+    ref.watch(activeStoreProvider);
+    ref.watch(homeFeedSearchQueryProvider);
+    
+    _currentPage = 1;
+    _hasMore = true;
+    _isLoadingMore = false;
+    return _fetchPage(_currentPage);
+  }
+
+  Future<List<dynamic>> _fetchPage(int page) async {
+    final apiService = ref.read(apiServiceProvider);
+    final store = ref.read(activeStoreProvider);
+    final query = ref.read(homeFeedSearchQueryProvider);
+
+    final results = await apiService.getThisWeekDiscounts(
+      page: page, 
+      pageSize: 20,
+      store: store == 'Alle' ? null : store,
+      query: query.isEmpty ? null : query,
+    );
+    
+    if (results.length < 20) {
+      _hasMore = false;
+    }
+    return results;
+  }
+
+  Future<void> loadMore() async {
+    if (!_hasMore || _isLoadingMore || state.isLoading) return;
+    
+    _isLoadingMore = true;
+    try {
+      _currentPage++;
+      final moreDeals = await _fetchPage(_currentPage);
+      final currentList = state.value ?? [];
+      state = AsyncData([...currentList, ...moreDeals]);
+    } catch (e) {
+      _currentPage--;
+      print('❌ Error loading more deals: $e');
+    } finally {
+      _isLoadingMore = false;
+    }
+  }
 }
 
-/// The currently selected category label. 'Alle' means no filter.
-final activeCategoryProvider =
-    NotifierProvider<_ActiveCategoryNotifier, String>(_ActiveCategoryNotifier.new);
+final thisWeekDiscountsProvider = AsyncNotifierProvider<ThisWeekDiscountsNotifier, List<dynamic>>(
+  ThisWeekDiscountsNotifier.new,
+);
 
-/// Simple Notifier wrapping the search query.
-class _SearchQueryNotifier extends Notifier<String> {
+// ─── HOME FEED FILTERS ───────────────────────────────────────────────────────
+
+/// Supermarket filter notifier
+class _ActiveStoreNotifier extends Notifier<String> {
+  @override
+  String build() => 'Alle';
+  void setStore(String store) => state = store;
+}
+
+final activeStoreProvider =
+    NotifierProvider<_ActiveStoreNotifier, String>(_ActiveStoreNotifier.new);
+
+/// Search query for home feed (real-time filtering)
+class _HomeFeedSearchQueryNotifier extends Notifier<String> {
   @override
   String build() => '';
   void setQuery(String query) => state = query;
 }
 
-/// Holds the current search query string (updated by the search sheet).
+final homeFeedSearchQueryProvider =
+    NotifierProvider<_HomeFeedSearchQueryNotifier, String>(_HomeFeedSearchQueryNotifier.new);
+
+/// Catalog search query (separate from home feed)
+class _CatalogSearchQueryNotifier extends Notifier<String> {
+  @override
+  String build() => '';
+  void setQuery(String query) => state = query;
+}
+
 final catalogSearchQueryProvider =
-    NotifierProvider<_SearchQueryNotifier, String>(_SearchQueryNotifier.new);
+    NotifierProvider<_CatalogSearchQueryNotifier, String>(_CatalogSearchQueryNotifier.new);
 
-/// Category → keyword lists for local substring filtering on product names.
-const Map<String, List<String>> _categoryKeywords = {
-  'Vers': [
-    'vers', 'vlees', 'gehakt', 'kipfilet', 'kip', 'vis', 'zalm', 'groente',
-    'fruit', 'appel', 'banaan', 'kaas', 'melk', 'yoghurt', 'kwark', 'boter',
-    'eieren', 'ei', 'zuivel', 'sla', 'tomaat', 'komkommer', 'paprika',
-  ],
-  'Pantry': [
-    'pasta', 'spaghetti', 'saus', 'pesto', 'soep', 'rijst', 'olie', 'azijn',
-    'conserve', 'blik', 'chips', 'biscuit', 'koek', 'crackers', 'noten',
-    'jam', 'pindakaas', 'hagelslag', 'muesli', 'ontbijtgranen', 'brood',
-  ],
-  'Drinken': [
-    'sap', 'cola', 'fanta', 'sprite', 'bier', 'wijn', 'water', 'thee',
-    'koffie', 'drank', 'limonade', 'melk', 'frisdrank', 'smoothie', 'energy',
-  ],
-  'Huis': [
-    'wasmiddel', 'schoonmaak', 'toiletpapier', 'zeep', 'shampoo', 'douchegel',
-    'tandpasta', 'deodorant', 'scheermesje', 'afwasmiddel', 'vuilniszak',
-    'allesreiniger', 'vloeistof',
-  ],
-};
 
-/// Returns a filtered (and sorted) subset of [discountsProvider] based on
-/// [activeCategoryProvider]. Filtering is entirely local — no extra API call.
+/// Returns the weekly deals, potentially filtered by the backend
 final filteredDiscountsProvider =
-    Provider<AsyncValue<List<dynamic>>>((ref) {
-  // Use the general weekly deals for the main feed
-  final discountsAsync = ref.watch(thisWeekDiscountsProvider);
-  final category = ref.watch(activeCategoryProvider);
-
-  if (category == 'Alle') return discountsAsync;
-
-  return discountsAsync.whenData((deals) {
-    final keywords = _categoryKeywords[category] ?? [];
-    if (keywords.isEmpty) return deals;
-
-    return deals.where((deal) {
-      final name = (deal['product']?.toString() ??
-              deal['product_name']?.toString() ??
-              '')
-          .toLowerCase();
-      return keywords.any((kw) => name.contains(kw));
-    }).toList();
-  });
-});
+    Provider<AsyncValue<List<dynamic>>>((ref) => ref.watch(thisWeekDiscountsProvider));
 
 // ─── CATALOG SEARCH ──────────────────────────────────────────────────────────
 
