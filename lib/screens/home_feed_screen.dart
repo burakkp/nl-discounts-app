@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/app_providers.dart';
 import '../models/catalog_item.dart';
 import '../theme/app_theme.dart';
+import '../widgets/shimmer_loaders.dart';
 import 'catalog_search_sheet.dart';
+import 'deal_detail_screen.dart';
 
 // ─── STORE BRANDING ──────────────────────────────────────────────────────────
 
@@ -29,16 +31,29 @@ Color _storeColor(String? storeName) {
 
 // Deal-type badge derived from deal data
 String _dealBadge(Map<String, dynamic> deal) {
-  final type = deal['deal_type']?.toString().toLowerCase() ?? '';
-  if (type.contains('1+1') || type.contains('een plus een')) return '1+1';
-  if (type.contains('2+1')) return '2+1';
-  if (type.contains('2de') || type.contains('tweede')) return '2e HALVE PRIJS';
+  final type = deal['deal_type']?.toString().toUpperCase() ?? '';
+  final raw = deal['original_deal_string']?.toString().toLowerCase() ?? '';
+
+  if (type == 'BOGO' || raw.contains('1+1') || raw.contains('gratis')) {
+    if (raw.contains('2+1')) return '2+1 GRATIS';
+    if (raw.contains('2+2')) return '2+2 GRATIS';
+    return '1+1 GRATIS';
+  }
+  if (type == 'HALF_PRICE_2ND' || raw.contains('halve prijs')) return '2e HALVE PRIJS';
+  if (type == 'FIXED_BUNDLE') {
+    final qty = deal['bundle_qty'] ?? 2;
+    return '$qty VOOR';
+  }
+
   final price = _parseDouble(deal['price']);
-  final oldPrice = _parseDouble(deal['old_price']);
+  final oldPrice = _parseDouble(deal['original_price'] ?? deal['old_price']);
   if (price != null && oldPrice != null && oldPrice > 0) {
     final pct = (((oldPrice - price) / oldPrice) * 100).round();
-    if (pct > 0) return '-$pct%';
+    if (pct > 5) return '-$pct%';
   }
+  
+  if (type == 'PERCENTAGE') return 'KORTING';
+  
   return 'DEAL';
 }
 
@@ -56,21 +71,7 @@ double? _parseDouble(dynamic v) {
   return double.tryParse(v.toString());
 }
 
-// ─── CATEGORIES ──────────────────────────────────────────────────────────────
-
-const List<_CategoryDef> _categories = [
-  _CategoryDef('Alle',    Icons.whatshot_rounded),
-  _CategoryDef('Vers',    Icons.eco_rounded),
-  _CategoryDef('Pantry',  Icons.kitchen_rounded),
-  _CategoryDef('Drinken', Icons.local_drink_rounded),
-  _CategoryDef('Huis',    Icons.home_rounded),
-];
-
-class _CategoryDef {
-  final String label;
-  final IconData icon;
-  const _CategoryDef(this.label, this.icon);
-}
+// ─── SCREEN ──────────────────────────────────────────────────────────────────
 
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
@@ -91,6 +92,11 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     _scroll.addListener(() {
       final blurred = _scroll.offset > 20;
       if (blurred != _headerBlurred) setState(() => _headerBlurred = blurred);
+
+      // Trigger pagination when within 300 pixels of the bottom
+      if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 300) {
+        ref.read(thisWeekDiscountsProvider.notifier).loadMore();
+      }
     });
   }
 
@@ -102,10 +108,10 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final city            = ref.watch(locationCityProvider);
-    final activeCategory  = ref.watch(activeCategoryProvider);
-    final filteredAsync   = ref.watch(filteredDiscountsProvider);
-    final weeklyAsync     = ref.watch(thisWeekDiscountsProvider);
+    final city = ref.watch(locationCityProvider);
+    final activeStore = ref.watch(activeStoreProvider);
+    final filteredAsync = ref.watch(filteredDiscountsProvider);
+    final weeklyAsync = ref.watch(thisWeekDiscountsProvider);
     // Weekly deals are used directly in _HeroBento
 
     return Scaffold(
@@ -114,7 +120,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
         children: [
           // ── Scrollable content ──────────────────────────────────────────
           RefreshIndicator(
-            onRefresh: () => ref.refresh(thisWeekDiscountsProvider.future),
+            onRefresh: () async => ref.invalidate(thisWeekDiscountsProvider),
             color: AppColors.primary,
             child: CustomScrollView(
               controller: _scroll,
@@ -125,13 +131,13 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                 // Top spacing under floating header
                 const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-                // Category chips
+                // Supermarket chips
                 SliverToBoxAdapter(
-                  child: _CategoryBar(
-                    activeCategory: activeCategory,
+                  child: _StoreBar(
+                    activeStore: activeStore,
                     onSelect: (label) => ref
-                        .read(activeCategoryProvider.notifier)
-                        .setCategory(label),
+                        .read(activeStoreProvider.notifier)
+                        .setStore(label),
                   ),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 32)),
@@ -160,9 +166,9 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                       textBaseline: TextBaseline.alphabetic,
                       children: [
                         Text(
-                          activeCategory == 'Alle'
+                          activeStore == 'Alle'
                               ? 'Populaire Aanbiedingen'
-                              : '$activeCategory Aanbiedingen',
+                              : '$activeStore Aanbiedingen',
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w900,
@@ -191,7 +197,18 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   sliver: filteredAsync.when(
-                    loading: () => const _SkeletonGrid(),
+                    loading: () => SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        childAspectRatio: 0.64, // Further increased vertical space
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => const DealCardShimmer(),
+                        childCount: 6,
+                      ),
+                    ),
                     error: (e, _) => _ErrorBanner(
                       message: e.toString(),
                       onRetry: () =>
@@ -200,10 +217,10 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                     data: (deals) {
                       if (deals.isEmpty) {
                         return _EmptyCategory(
-                          category: activeCategory,
+                          category: activeStore,
                           onReset: () => ref
-                              .read(activeCategoryProvider.notifier)
-                              .setCategory('Alle'),
+                              .read(activeStoreProvider.notifier)
+                              .setStore('Alle'),
                         );
                       }
                       return SliverGrid(
@@ -221,27 +238,60 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                             final dist = deal['distance_km'] != null
                                 ? '${deal['distance_km']}km'
                                 : 'Dichtbij';
-                            final price = _parseDouble(deal['price']);
-                            final oldPrice = _parseDouble(deal['old_price']);
+                            
+                            final priceVal = _parseDouble(deal['price']);
+                            final price = priceVal?.toStringAsFixed(2) ?? '--';
+                            final hasOptions = (deal['deal_options'] as List?)?.isNotEmpty ?? false;
+                            final displayPrice = hasOptions ? 'Vanaf €$price' : (priceVal != null ? '€$price' : (deal['deal_label']?.toString() ?? '--'));
+
+                            final oldPrice = _parseDouble(deal['original_price'] ?? deal['old_price']);
                             final badge = _dealBadge(deal);
+                            final unitLabel = deal['unit_label']?.toString();
+                            final endDate = deal['end_date']?.toString();
+                            
+                            double? savings;
+                            if (priceVal != null && oldPrice != null && oldPrice > priceVal) {
+                              savings = oldPrice - priceVal;
+                            }
+
+                            var imageUrl = deal['image_url']?.toString();
+                            if (imageUrl != null && imageUrl.startsWith('//')) {
+                              imageUrl = 'https:$imageUrl';
+                            }
 
                             return _DealGridCard(
                               title: name,
                               subtitle: '${store.toUpperCase()} • $dist',
-                              price: price != null
-                                  ? '€${price.toStringAsFixed(2)}'
-                                  : '--',
+                              price: displayPrice,
                               oldPrice: oldPrice != null
                                   ? '€${oldPrice.toStringAsFixed(2)}'
-                                  : '',
+                                  : null,
+                              unitLabel: unitLabel,
+                              savings: savings != null ? 'Bespaar €${savings.toStringAsFixed(2)}' : null,
                               badgeText: badge,
                               badgeColor: _badgeColor(badge),
                               storeColor: _storeColor(store),
-                              imageUrl: deal['image_url']?.toString(),
+                              imageUrl: imageUrl,
+                              endDate: endDate,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DealDetailScreen(deal: deal),
+                                  ),
+                                );
+                              },
                               onAddToWatchlist: () {
-                                ref
-                                    .read(watchlistNotifierProvider.notifier)
-                                    .add(CatalogItem(id: slug, name: name, supermarket: store));
+                                ref.read(watchlistNotifierProvider.notifier).add(
+                                  CatalogItem(
+                                    id: slug, 
+                                    name: name, 
+                                    supermarket: store,
+                                    originalPrice: oldPrice,
+                                    unitLabel: unitLabel,
+                                    endDate: endDate,
+                                  )
+                                );
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text('✅ "$name" aan lijst toegevoegd!'),
@@ -269,7 +319,29 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                   ),
                 ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                // Load-more spinner — visible when fetching the next page
+                SliverToBoxAdapter(
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final notifier = ref.read(thisWeekDiscountsProvider.notifier);
+                      if (!notifier.isLoadingMore && !notifier.hasMore) {
+                        return const Padding(
+                          padding: EdgeInsets.only(bottom: 32, top: 8),
+                          child: Center(
+                            child: Text('✅ Dat is alles!', style: TextStyle(color: AppColors.outline, fontSize: 13)),
+                          ),
+                        );
+                      }
+                      if (notifier.isLoadingMore) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)),
+                        );
+                      }
+                      return const SizedBox(height: 120);
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -312,48 +384,64 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
 
 // ─── SEARCH BAR ──────────────────────────────────────────────────────────────
 
-class _SearchBar extends StatelessWidget {
+class _SearchBar extends ConsumerWidget {
   final String city;
   final VoidCallback onTap;
   const _SearchBar({required this.city, required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
         Expanded(
-          child: GestureDetector(
-            onTap: onTap,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(32),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.search_rounded, color: AppColors.outline),
-                  SizedBox(width: 12),
-                  Text('Zoek naar producten...', style: TextStyle(color: AppColors.onSurfaceVariant)),
-                ],
-              ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(32),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.search_rounded, color: AppColors.outline),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    onChanged: (val) => ref.read(homeFeedSearchQueryProvider.notifier).setQuery(val),
+                    decoration: const InputDecoration(
+                      hintText: 'Zoek naar producten...',
+                      border: InputBorder.none,
+                      hintStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                    ),
+                    style: const TextStyle(color: AppColors.onSurface),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
         const SizedBox(width: 12),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: AppColors.secondaryContainer,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.location_on_rounded, color: AppColors.onSecondaryContainer, size: 16),
-              const SizedBox(width: 6),
-              Text('JE LOKALE ${city.toUpperCase()} STORE', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.onSecondaryContainer, letterSpacing: 1.0)),
-            ],
+        GestureDetector(
+          onTap: onTap, // Still opens catalog search if needed
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.secondaryContainer,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.location_on_rounded, color: AppColors.onSecondaryContainer, size: 16),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    'JE LOKALE ${city.toUpperCase()} STORE',
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.onSecondaryContainer, letterSpacing: 1.0),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -363,13 +451,22 @@ class _SearchBar extends StatelessWidget {
 
 
 
-// ─── CATEGORY BAR ────────────────────────────────────────────────────────────
+// ─── STORE BAR ───────────────────────────────────────────────────────────────
 
-class _CategoryBar extends StatelessWidget {
-  final String activeCategory;
+class _StoreBar extends StatelessWidget {
+  final String activeStore;
   final ValueChanged<String> onSelect;
 
-  const _CategoryBar({required this.activeCategory, required this.onSelect});
+  const _StoreBar({required this.activeStore, required this.onSelect});
+
+  static const List<Map<String, dynamic>> _stores = [
+    {'label': 'Alle', 'icon': Icons.all_inclusive_rounded},
+    {'label': 'Albert Heijn', 'icon': Icons.shopping_basket_rounded},
+    {'label': 'Jumbo', 'icon': Icons.store_rounded},
+    {'label': 'Aldi', 'icon': Icons.discount_rounded},
+    {'label': 'Lidl', 'icon': Icons.flash_on_rounded},
+    {'label': 'Plus', 'icon': Icons.add_circle_rounded},
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -377,12 +474,12 @@ class _CategoryBar extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
-        children: _categories.map((cat) {
-          final isActive = cat.label == activeCategory;
+        children: _stores.map((store) {
+          final isActive = store['label'] == activeStore;
           return Padding(
             padding: const EdgeInsets.only(right: 12),
             child: GestureDetector(
-              onTap: () => onSelect(cat.label),
+              onTap: () => onSelect(store['label'] as String),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
                 curve: Curves.easeOut,
@@ -399,7 +496,7 @@ class _CategoryBar extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      cat.icon,
+                      store['icon'] as IconData,
                       size: 18,
                       color: isActive
                           ? AppColors.onPrimaryContainer
@@ -407,7 +504,7 @@ class _CategoryBar extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      cat.label,
+                      store['label'] as String,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -476,6 +573,15 @@ class _HeroBento extends StatelessWidget {
         ),
         child: Stack(
           children: [
+            Positioned(
+              right: -40,
+              bottom: -20,
+              child: SizedBox(
+                width: 200,
+                height: 200,
+                child: Image.network(heroImg, fit: BoxFit.cover, errorBuilder: (c, e, s) => const SizedBox.shrink()),
+              ),
+            ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -517,7 +623,14 @@ class _HeroBento extends StatelessWidget {
                     ),
                     const SizedBox(width: 16),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: primaryDeal == null ? null : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DealDetailScreen(deal: primaryDeal),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryContainer,
                         foregroundColor: AppColors.onPrimaryContainer,
@@ -529,15 +642,6 @@ class _HeroBento extends StatelessWidget {
                   ],
                 )
               ],
-            ),
-            Positioned(
-              right: -40,
-              bottom: -20,
-              child: SizedBox(
-                width: 200,
-                height: 200,
-                child: Image.network(heroImg, fit: BoxFit.cover, errorBuilder: (c, e, s) => const SizedBox.shrink()),
-              ),
             ),
           ],
         ),
@@ -604,23 +708,31 @@ class _DealGridCard extends StatefulWidget {
   final String title;
   final String subtitle;
   final String price;
-  final String oldPrice;
+  final String? oldPrice;
+  final String? unitLabel;
+  final String? savings;
   final String badgeText;
   final Color badgeColor;
   final Color storeColor;
   final String? imageUrl;
+  final String? endDate;
   final VoidCallback onAddToWatchlist;
+  final VoidCallback onTap;
 
   const _DealGridCard({
     required this.title,
     required this.subtitle,
     required this.price,
-    required this.oldPrice,
+    this.oldPrice,
+    this.unitLabel,
+    this.savings,
     required this.badgeText,
     required this.badgeColor,
     required this.storeColor,
     this.imageUrl,
+    this.endDate,
     required this.onAddToWatchlist,
+    required this.onTap,
   });
 
   @override
@@ -634,90 +746,220 @@ class _DealGridCardState extends State<_DealGridCard> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onLongPress: widget.onAddToWatchlist,
+      onTap: widget.onTap,
       child: MouseRegion(
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: _isHovered ? AppColors.surfaceContainerHigh : AppColors.surfaceContainerLow,
             borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: _isHovered ? widget.storeColor.withValues(alpha: 0.2) : Colors.transparent,
+              width: 2,
+            ),
           ),
+          clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Image and badge container
+              // --- Image & Badge Section ---
               Expanded(
-                flex: 5,
+                flex: 10,
                 child: Stack(
                   children: [
                     Container(
                       width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                      padding: const EdgeInsets.all(12),
+                      decoration: const BoxDecoration(color: Colors.white),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: AnimatedScale(
-                          scale: _isHovered ? 1.1 : 1.0,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeOut,
-                          child: widget.imageUrl != null 
-                              ? Image.network(widget.imageUrl!, fit: BoxFit.contain, errorBuilder: (c,e,s) => Center(child: Icon(Icons.shopping_basket_rounded, color: widget.storeColor.withAlpha(50), size: 40)))
-                              : Center(child: Icon(Icons.shopping_basket_rounded, color: widget.storeColor.withAlpha(50), size: 40)),
+                        child: Hero(
+                          tag: 'deal_image_${widget.title}',
+                          child: AnimatedScale(
+                            scale: _isHovered ? 1.05 : 1.0,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
+                            child: widget.imageUrl != null 
+                                ? Image.network(
+                                    widget.imageUrl!.startsWith('//') ? 'https:${widget.imageUrl}' : widget.imageUrl!, 
+                                    fit: BoxFit.contain,
+                                    loadingBuilder: (ctx, child, progress) {
+                                      if (progress == null) return child;
+                                      return Container(
+                                        color: AppColors.surfaceContainerHighest.withAlpha(80),
+                                        child: const Center(
+                                          child: SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (c,e,s) => _fallbackIcon(),
+                                  )
+                                : _fallbackIcon(),
+                          ),
                         ),
                       ),
                     ),
+                    // Deal Type Badge (Premium pill style)
                     Positioned(
-                      top: -4,
-                      left: -4,
+                      top: 12,
+                      left: 12,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: widget.badgeColor,
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: widget.badgeColor.withAlpha(100),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: Text(
                           widget.badgeText,
-                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.5),
+                          style: const TextStyle(
+                            fontSize: 10, 
+                            fontWeight: FontWeight.w900, 
+                            color: Colors.white, 
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
                     ),
+                    // Validity Indicator (Urgency)
+                    if (widget.endDate != null)
+                      Positioned(
+                        bottom: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withAlpha(150),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'T/M ZONDAG', // Simplified for demo, logic can be added later
+                            style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
-              // Text Content
+
+              // --- Content Section ---
               Expanded(
-                flex: 4,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(widget.subtitle.split(' • ').first, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: widget.storeColor, letterSpacing: 1.5, height: 1.0)),
-                        const SizedBox(height: 4),
-                        Text(widget.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.onSurface, height: 1.2), maxLines: 1, overflow: TextOverflow.ellipsis),
-                        const SizedBox(height: 2),
-                        Text(widget.subtitle.split(' • ').last, style: const TextStyle(fontSize: 10, color: AppColors.onSurfaceVariant)),
-                      ],
-                    ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(widget.price, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: widget.price == '--' ? AppColors.onSurfaceVariant : AppColors.tertiary)),
-                        if (widget.oldPrice.isNotEmpty) ...[
-                          const SizedBox(width: 4),
-                          Text(widget.oldPrice, style: const TextStyle(fontSize: 12, decoration: TextDecoration.lineThrough, color: AppColors.outline)),
+                flex: 10,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.subtitle.split(' • ').first, 
+                            style: TextStyle(
+                              fontSize: 9, 
+                              fontWeight: FontWeight.w900, 
+                              color: widget.storeColor, 
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.title, 
+                            style: const TextStyle(
+                              fontSize: 13, 
+                              fontWeight: FontWeight.bold, 
+                              color: AppColors.onSurface, 
+                              height: 1.2,
+                            ), 
+                            maxLines: 2, 
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (widget.unitLabel != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.unitLabel!,
+                              style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                            ),
+                          ],
                         ],
-                      ],
-                    ),
-                  ],
+                      ),
+                      
+                      const Spacer(),
+                      
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (widget.savings != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 2),
+                              child: Text(
+                                widget.savings!,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 4),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                // Detect if this is a numeric price or a deal label
+                                Builder(builder: (context) {
+                                  final isNumeric = widget.price.contains('€');
+                                  final isMissing = widget.price == '--';
+                                return Text(
+                                  widget.price,
+                                  style: TextStyle(
+                                    fontSize: isNumeric ? 20 : (isMissing ? 16 : 13),
+                                    fontWeight: FontWeight.w900,
+                                    color: isNumeric
+                                        ? AppColors.tertiary
+                                        : isMissing
+                                            ? AppColors.onSurfaceVariant
+                                            : AppColors.primary,
+                                    letterSpacing: isNumeric ? -0.5 : 0.2,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                );
+                              }),
+                              if (widget.oldPrice != null) ...[
+                                const SizedBox(width: 6),
+                                Text(
+                                  widget.oldPrice!, 
+                                  style: const TextStyle(
+                                    fontSize: 12, 
+                                    decoration: TextDecoration.lineThrough, 
+                                    color: AppColors.outline,
+                                  ),
+                                ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -726,70 +968,19 @@ class _DealGridCardState extends State<_DealGridCard> {
       ),
     );
   }
-}
 
-// ─── SKELETON GRID ───────────────────────────────────────────────────────────
-
-class _SkeletonGrid extends StatefulWidget {
-  const _SkeletonGrid();
-
-  @override
-  State<_SkeletonGrid> createState() => _SkeletonGridState();
-}
-
-class _SkeletonGridState extends State<_SkeletonGrid>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1100),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverGrid(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) => AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) {
-            final t = _controller.value > 0.5
-                ? 1 - _controller.value
-                : _controller.value;
-            final color = Color.lerp(
-              AppColors.surfaceContainerLow,
-              AppColors.surfaceContainerHigh,
-              t * 2,
-            )!;
-            return Container(
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(28),
-              ),
-            );
-          },
-        ),
-        childCount: 6,
-      ),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.65,
+  Widget _fallbackIcon() {
+    return Center(
+      child: Icon(
+        Icons.shopping_basket_rounded, 
+        color: widget.storeColor.withAlpha(40), 
+        size: 40,
       ),
     );
   }
 }
+
+
 
 // ─── EMPTY & ERROR STATES ────────────────────────────────────────────────────
 

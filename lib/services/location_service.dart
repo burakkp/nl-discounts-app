@@ -42,6 +42,25 @@ class LocationService {
     }
 
     debugPrint('📍 Fetching real mobile GPS location...');
-    return await Geolocator.getCurrentPosition(locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
+    try {
+      // Added a 3-second timeout to prevent Android Emulator ANR crashes
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium)
+      ).timeout(const Duration(seconds: 3));
+    } catch (e) {
+      debugPrint('⚠️ GPS fetch failed or timed out: $e. Falling back to mock location.');
+      return Position(
+        latitude: 51.88,
+        longitude: 5.43,
+        timestamp: DateTime.now(),
+        accuracy: 100,
+        altitude: 0,
+        heading: 0,
+        speed: 0,
+        speedAccuracy: 0,
+        altitudeAccuracy: 0,
+        headingAccuracy: 0,
+      );
+    }
   }
 }

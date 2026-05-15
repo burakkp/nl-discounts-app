@@ -2,6 +2,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../providers/app_providers.dart';
 import '../models/catalog_item.dart';
 import '../theme/app_theme.dart';
@@ -54,14 +55,20 @@ double? _parseDouble(dynamic v) {
 }
 
 String _dealBadge(Map<String, dynamic> deal) {
-  final type = deal['deal_type']?.toString().toLowerCase() ?? '';
-  if (type.contains('1+1')) return '1+1';
-  if (type.contains('2+1')) return '2+1';
+  final type = deal['deal_type']?.toString().toUpperCase() ?? '';
+  final raw = deal['original_deal_string']?.toString().toLowerCase() ?? '';
+
+  if (type == 'BOGO' || raw.contains('1+1') || raw.contains('gratis')) {
+    if (raw.contains('2+1')) return '2+1 GRATIS';
+    return '1+1 GRATIS';
+  }
+  if (type == 'HALF_PRICE_2ND' || raw.contains('halve prijs')) return '2e HALVE PRIJS';
+  
   final price = _parseDouble(deal['price']);
-  final oldPrice = _parseDouble(deal['old_price']);
+  final oldPrice = _parseDouble(deal['original_price'] ?? deal['old_price']);
   if (price != null && oldPrice != null && oldPrice > 0) {
     final pct = (((oldPrice - price) / oldPrice) * 100).round();
-    if (pct > 0) return '-$pct%';
+    if (pct > 5) return '-$pct%';
   }
   return 'DEAL';
 }
@@ -88,58 +95,35 @@ class MapViewScreen extends ConsumerStatefulWidget {
 
 class _MapViewScreenState extends ConsumerState<MapViewScreen>
     with TickerProviderStateMixin {
-  late final AnimationController _pulseController;
-  late final AnimationController _markerController;
+  GoogleMapController? _mapController;
   String _selectedStore = 'Alle';
-  String? _focusedStore; // Which store bottom sheet is open for
-
-  // Deterministic "positions" for markers on the canvas (seeded by store name)
-  final Map<String, Offset> _markerPositions = {};
+  String? _focusedStore;
 
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1800),
-    )..repeat(reverse: true);
-    _markerController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-      value: 0,
-    )..forward();
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
-    _markerController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 
-  // Assigns stable random-ish positions to store markers within the canvas
-  Offset _positionForStore(String storeName, Size canvasSize) {
-    if (!_markerPositions.containsKey(storeName)) {
-      final seed = storeName.codeUnits.fold(0, (a, b) => a + b);
-      final rng = math.Random(seed);
-      _markerPositions[storeName] = Offset(
-        canvasSize.width * (0.12 + rng.nextDouble() * 0.72),
-        canvasSize.height * (0.12 + rng.nextDouble() * 0.64),
-      );
-    }
-    return _markerPositions[storeName]!;
+  Future<void> _onMapCreated(GoogleMapController controller) async {
+    _mapController = controller;
+    
+    // Smoothly animate to user location on start
+    final pos = await ref.read(locationProvider.future);
+    _mapController?.animateCamera(
+      CameraUpdate.newLatLngZoom(
+        LatLng(pos.latitude, pos.longitude),
+        14.0,
+      ),
+    );
   }
 
-  List<Map<String, dynamic>> _filteredDeals(List<dynamic> deals) {
-    if (_selectedStore == 'Alle') return deals.cast();
-    return deals
-        .cast<Map<String, dynamic>>()
-        .where((d) =>
-            (d['supermarket']?.toString() ?? '')
-                .toLowerCase()
-                .contains(_selectedStore.toLowerCase()))
-        .toList();
-  }
+
 
   void _onStoreTap(String storeName, List<Map<String, dynamic>> deals) {
     setState(() => _focusedStore = storeName);
@@ -157,24 +141,66 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen>
 
   @override
   Widget build(BuildContext context) {
-    final discountsAsync = ref.watch(discountsProvider);
+    final storesAsync = ref.watch(nearbyStoresProvider);
+    final locationAsync = ref.watch(locationProvider);
     final city = ref.watch(locationCityProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // ── Map Canvas ────────────────────────────────────────────────────
+          // ── Real Google Map ──────────────────────────────────────────────
           Positioned.fill(
-            child: _MapCanvas(
-              discountsAsync: discountsAsync,
-              selectedStore: _selectedStore,
-              focusedStore: _focusedStore,
-              pulseController: _pulseController,
-              markerController: _markerController,
-              positionForStore: _positionForStore,
-              filteredDeals: _filteredDeals,
-              onStoreTap: _onStoreTap,
+            child: locationAsync.when(
+              data: (pos) => GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: LatLng(pos.latitude, pos.longitude),
+                  zoom: 14,
+                ),
+                onMapCreated: _onMapCreated,
+                myLocationEnabled: true,
+                myLocationButtonEnabled: false,
+                zoomControlsEnabled: false,
+                mapToolbarEnabled: false,
+                compassEnabled: false,
+                markers: storesAsync.when(
+                  data: (stores) {
+                    return stores.map((s) {
+                      final lat = s['latitude'] as double;
+                      final lng = s['longitude'] as double;
+                      final name = s['chain_name'] as String;
+                      final hits = s['watchlist_hits'] as int;
+
+                      return Marker(
+                        markerId: MarkerId(s['id'].toString()),
+                        position: LatLng(lat, lng),
+                        infoWindow: InfoWindow(
+                          title: name,
+                          snippet: hits > 0 ? '$hits watchlist deals!' : 'Tap to view deals',
+                        ),
+                        icon: hits > 0 
+                          ? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange)
+                          : BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+                        onTap: () {
+                          // We still need the deals for this store. 
+                          // For now, we'll fetch them from the overall deals provider 
+                          // or just show the sheet with what we have.
+                          final allDeals = ref.read(discountsProvider).value ?? [];
+                          final storeDeals = allDeals.where((d) => 
+                            (d['supermarket']?.toString() ?? '').toLowerCase() == name.toLowerCase()
+                          ).toList().cast<Map<String, dynamic>>();
+                          
+                          _onStoreTap(name, storeDeals);
+                        },
+                      );
+                    }).toSet();
+                  },
+                  loading: () => {},
+                  error: (_, __) => {},
+                ),
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, _) => Center(child: Text('Map Error: $err')),
             ),
           ),
 
@@ -327,13 +353,63 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen>
           // ── FABs ─────────────────────────────────────────────────────────
           Positioned(
             right: 16,
-            bottom: MediaQuery.of(context).size.height * 0.38,
+            bottom: MediaQuery.of(context).size.height * 0.42,
             child: Column(
               children: [
                 _MapFab(
                   heroTag: 'search_map_fab',
-                  icon: Icons.search_rounded,
-                  onTap: () => showCatalogSearchSheet(context),
+                  icon: Icons.storefront_rounded,
+                  onTap: () {
+                    // Quick store chain filter sheet
+                    showModalBottomSheet(
+                      context: context,
+                      backgroundColor: AppColors.background,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                      ),
+                      builder: (context) => Container(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Filter op supermarkt',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 12,
+                              children: _storeFilters.map((label) {
+                                final isActive = _selectedStore == label;
+                                return ChoiceChip(
+                                  label: Text(label),
+                                  selected: isActive,
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      setState(() => _selectedStore = label);
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                                  selectedColor: AppColors.primary,
+                                  labelStyle: TextStyle(
+                                    color: isActive ? Colors.white : AppColors.onSurface,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                   color: AppColors.surfaceContainerLowest,
                   iconColor: AppColors.primary,
                 ),
@@ -341,7 +417,27 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen>
                 _MapFab(
                   heroTag: 'location_map_fab',
                   icon: Icons.my_location_rounded,
-                  onTap: () => ref.refresh(locationProvider.future),
+                  onTap: () async {
+                    if (_mapController == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Wachten op kaart...')),
+                      );
+                      return;
+                    }
+                    try {
+                      final pos = await ref.read(locationProvider.future);
+                      _mapController?.animateCamera(
+                        CameraUpdate.newLatLngZoom(
+                          LatLng(pos.latitude, pos.longitude),
+                          14.0,
+                        ),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Locatie niet gevonden: $e')),
+                      );
+                    }
+                  },
                   color: AppColors.primaryContainer,
                   iconColor: AppColors.onPrimaryContainer,
                 ),
@@ -351,10 +447,9 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen>
 
           // ── Bottom sheet: store list ──────────────────────────────────────
           _StoreListSheet(
-            discountsAsync: discountsAsync,
-            selectedStore: _selectedStore,
-            filteredDeals: _filteredDeals,
+            storesAsync: storesAsync,
             onStoreTap: _onStoreTap,
+            ref: ref,
           ),
         ],
       ),
@@ -362,414 +457,91 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen>
   }
 }
 
-// ─── MAP CANVAS ──────────────────────────────────────────────────────────────
 
-class _MapCanvas extends StatelessWidget {
-  final AsyncValue<List<dynamic>> discountsAsync;
-  final String selectedStore;
-  final String? focusedStore;
-  final AnimationController pulseController;
-  final AnimationController markerController;
-  final Offset Function(String, Size) positionForStore;
-  final List<Map<String, dynamic>> Function(List<dynamic>) filteredDeals;
-  final void Function(String, List<Map<String, dynamic>>) onStoreTap;
-
-  const _MapCanvas({
-    required this.discountsAsync,
-    required this.selectedStore,
-    required this.focusedStore,
-    required this.pulseController,
-    required this.markerController,
-    required this.positionForStore,
-    required this.filteredDeals,
-    required this.onStoreTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final size = Size(constraints.maxWidth, constraints.maxHeight);
-
-        return Stack(
-          children: [
-            // Map background (styled grid)
-            Positioned.fill(child: _MapBackground()),
-
-            // Gradient overlay (bottom fade for sheet)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.transparent,
-                      AppColors.background.withAlpha(180),
-                    ],
-                    stops: const [0.0, 0.55, 1.0],
-                  ),
-                ),
-              ),
-            ),
-
-            // User location dot
-            Positioned(
-              left: size.width * 0.48,
-              top: size.height * 0.44,
-              child: _AnimatedLocationDot(controller: pulseController),
-            ),
-
-            // Store markers
-            ...discountsAsync.when(
-              data: (deals) {
-                final grouped = _groupByStore(deals);
-                final filtered =
-                    selectedStore == 'Alle'
-                        ? grouped
-                        : {
-                            for (final e in grouped.entries)
-                              if (e.key
-                                  .toLowerCase()
-                                  .contains(selectedStore.toLowerCase()))
-                                e.key: e.value,
-                          };
-
-                return filtered.entries.map((entry) {
-                  final pos = positionForStore(entry.key, size);
-                  final isFocused = focusedStore == entry.key;
-                  return Positioned(
-                    left: pos.dx - 24,
-                    top: pos.dy - 24,
-                    child: ScaleTransition(
-                      scale: CurvedAnimation(
-                        parent: markerController,
-                        curve: Curves.elasticOut,
-                      ),
-                      child: _StoreMarker(
-                        storeName: entry.key,
-                        dealCount: entry.value.length,
-                        isFocused: isFocused,
-                        onTap: () => onStoreTap(entry.key, entry.value),
-                      ),
-                    ),
-                  );
-                }).toList();
-              },
-              loading: () => [],
-              error: (_, _) => [],
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-// ─── MAP BACKGROUND ──────────────────────────────────────────────────────────
-
-class _MapBackground extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _MapGridPainter(),
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFE8F4F8),
-              Color(0xFFDDEEF5),
-              Color(0xFFD0E8F2),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MapGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withAlpha(200)
-      ..strokeWidth = 1;
-
-    // Horizontal streets
-    for (double y = 0; y < size.height; y += 48) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-    // Vertical streets
-    for (double x = 0; x < size.width; x += 64) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-
-    // Some "block" fills
-    final blockPaint = Paint()..color = Colors.white.withAlpha(120);
-    final rng = math.Random(42);
-    for (int i = 0; i < 12; i++) {
-      final x = (rng.nextDouble() * (size.width - 80)).clamp(8.0, size.width - 80);
-      final y = (rng.nextDouble() * (size.height - 60)).clamp(8.0, size.height - 60);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(x, y, 56 + rng.nextDouble() * 40, 36 + rng.nextDouble() * 24),
-          const Radius.circular(6),
-        ),
-        blockPaint,
-      );
-    }
-
-    // A "park" blob
-    canvas.drawCircle(
-      Offset(size.width * 0.25, size.height * 0.35),
-      60,
-      Paint()..color = const Color(0xFF9DC8A8).withAlpha(100),
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.75, size.height * 0.6),
-      40,
-      Paint()..color = const Color(0xFF9DC8A8).withAlpha(80),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_MapGridPainter old) => false;
-}
-
-// ─── ANIMATED LOCATION DOT ───────────────────────────────────────────────────
-
-class _AnimatedLocationDot extends StatelessWidget {
-  final AnimationController controller;
-
-  const _AnimatedLocationDot({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        final pulse = controller.value;
-        return SizedBox(
-          width: 48,
-          height: 48,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Outer pulse ring
-              Container(
-                width: 48 * (0.5 + pulse * 0.5),
-                height: 48 * (0.5 + pulse * 0.5),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha((80 * (1 - pulse)).toInt()),
-                  shape: BoxShape.circle,
-                ),
-              ),
-              // White ring
-              Container(
-                width: 22,
-                height: 22,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: Colors.black26, blurRadius: 8),
-                  ],
-                ),
-              ),
-              // Inner dot
-              Container(
-                width: 14,
-                height: 14,
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-// ─── STORE MARKER ────────────────────────────────────────────────────────────
-
-class _StoreMarker extends StatelessWidget {
-  final String storeName;
-  final int dealCount;
-  final bool isFocused;
-  final VoidCallback onTap;
-
-  const _StoreMarker({
-    required this.storeName,
-    required this.dealCount,
-    required this.isFocused,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _colorForStore(storeName);
-    final label = _initials(storeName);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedScale(
-        scale: isFocused ? 1.25 : 1.0,
-        duration: const Duration(milliseconds: 200),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Deal count bubble
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.tertiary,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black26, blurRadius: 4),
-                ],
-              ),
-              child: Text(
-                '$dealCount deals',
-                style: const TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(height: 3),
-            // Pin
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isFocused ? Colors.white : Colors.white.withAlpha(180),
-                  width: isFocused ? 3 : 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withAlpha(140),
-                    blurRadius: isFocused ? 14 : 8,
-                    spreadRadius: isFocused ? 2 : 0,
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: color.computeLuminance() > 0.5
-                        ? Colors.black87
-                        : Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            // Tail
-            Container(
-              width: 4,
-              height: 6,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(2),
-                  bottomRight: Radius.circular(2),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ─── STORE LIST BOTTOM SHEET ─────────────────────────────────────────────────
 
 class _StoreListSheet extends StatelessWidget {
-  final AsyncValue<List<dynamic>> discountsAsync;
-  final String selectedStore;
-  final List<Map<String, dynamic>> Function(List<dynamic>) filteredDeals;
+  final AsyncValue<List<dynamic>> storesAsync;
   final void Function(String, List<Map<String, dynamic>>) onStoreTap;
+  final WidgetRef ref;
 
   const _StoreListSheet({
-    required this.discountsAsync,
-    required this.selectedStore,
-    required this.filteredDeals,
+    required this.storesAsync,
     required this.onStoreTap,
+    required this.ref,
   });
 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-      initialChildSize: 0.32,
-      minChildSize: 0.16,
-      maxChildSize: 0.72,
+      initialChildSize: 0.22, // Increased to clear the floating nav bar
+      minChildSize: 0.18,     // Increased to clear the floating nav bar
+      maxChildSize: 0.85,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          decoration: BoxDecoration(
+            color: AppColors.background.withAlpha(245),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
             boxShadow: [
               BoxShadow(
-                color: Color.fromRGBO(43, 47, 48, 0.06),
-                blurRadius: 32,
-                offset: Offset(0, -12),
+                color: Colors.black.withAlpha(20),
+                blurRadius: 20,
+                offset: const Offset(0, -5),
               ),
             ],
           ),
           child: Column(
             children: [
-              // Drag handle
+              // Handle
               Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 16),
-                width: 48,
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.outlineVariant,
+                  color: AppColors.outlineVariant.withAlpha(100),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              // Content
-              Expanded(
-                child: discountsAsync.when(
-                  loading: () => _SheetSkeleton(),
-                  error: (e, _) => Center(
-                    child: Text(
-                      'Kon winkels niet laden',
-                      style: const TextStyle(color: AppColors.onSurfaceVariant),
+              
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Winkels in de buurt',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.onSurface,
+                      ),
                     ),
-                  ),
-                  data: (deals) {
-                    final grouped = _groupByStore(filteredDeals(deals));
-                    if (grouped.isEmpty) {
+                    const Spacer(),
+                    storesAsync.maybeWhen(
+                      data: (stores) => Text(
+                        '${stores.length} gevonden',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                      orElse: () => const SizedBox(),
+                    ),
+                  ],
+                ),
+              ),
+
+              Expanded(
+                child: storesAsync.when(
+                  data: (stores) {
+                    if (stores.isEmpty) {
                       return Center(
                         child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
-                              Icons.store_mall_directory_outlined,
-                              size: 40,
-                              color: AppColors.outline,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Geen "$selectedStore" winkels gevonden',
-                              style: const TextStyle(
-                                color: AppColors.onSurfaceVariant,
-                              ),
-                            ),
+                            const Icon(Icons.storefront_outlined, size: 48, color: AppColors.outline),
+                            const SizedBox(height: 16),
+                            const Text('Geen winkels gevonden in dit gebied'),
                           ],
                         ),
                       );
@@ -777,19 +549,36 @@ class _StoreListSheet extends StatelessWidget {
 
                     return ListView.separated(
                       controller: scrollController,
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-                      itemCount: grouped.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+                      itemCount: stores.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
-                        final entry = grouped.entries.elementAt(index);
+                        final s = stores[index];
+                        final name = s['chain_name'] as String;
+                        final address = s['address'] as String;
+                        final dist = s['distance_km'] as double;
+                        final hits = s['watchlist_hits'] as int;
+
                         return _StoreListTile(
-                          storeName: entry.key,
-                          deals: entry.value,
-                          onTap: () => onStoreTap(entry.key, entry.value),
+                          storeName: name,
+                          address: address,
+                          distance: dist,
+                          watchlistHits: hits,
+                          onTap: () {
+                            // Fetch deals for this store from the main discounts provider
+                            final allDeals = ref.read(discountsProvider).value ?? [];
+                            final storeDeals = allDeals.where((d) => 
+                              (d['supermarket']?.toString() ?? '').toLowerCase() == name.toLowerCase()
+                            ).toList().cast<Map<String, dynamic>>();
+                            
+                            onStoreTap(name, storeDeals);
+                          },
                         );
                       },
                     );
                   },
+                  loading: () => _SheetSkeleton(),
+                  error: (err, _) => Center(child: Text('Fout bij laden winkels: $err')),
                 ),
               ),
             ],
@@ -804,12 +593,16 @@ class _StoreListSheet extends StatelessWidget {
 
 class _StoreListTile extends StatelessWidget {
   final String storeName;
-  final List<Map<String, dynamic>> deals;
+  final String address;
+  final double distance;
+  final int watchlistHits;
   final VoidCallback onTap;
 
   const _StoreListTile({
     required this.storeName,
-    required this.deals,
+    required this.address,
+    required this.distance,
+    required this.watchlistHits,
     required this.onTap,
   });
 
@@ -817,10 +610,6 @@ class _StoreListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = _colorForStore(storeName);
     final label = _initials(storeName);
-    final closestDist = deals
-        .map((d) => _parseDouble(d['distance_km']))
-        .whereType<double>()
-        .fold<double?>(null, (a, b) => a == null ? b : (b < a ? b : a));
 
     return InkWell(
       onTap: onTap,
@@ -836,25 +625,47 @@ class _StoreListTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Store icon
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: color.computeLuminance() > 0.5
-                      ? Colors.black87
-                      : Colors.white,
+            // Store icon with optional badge
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: color.computeLuminance() > 0.5
+                          ? Colors.black87
+                          : Colors.white,
+                    ),
+                  ),
                 ),
-              ),
+                if (watchlistHits > 0)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.orange,
+                        shape: BoxShape.circle,
+                        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                      ),
+                      child: const Text(
+                        '🔥',
+                        style: TextStyle(fontSize: 10),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(width: 16),
 
@@ -873,36 +684,46 @@ class _StoreListTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
+                  Text(
+                    address,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withAlpha(20),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '${deals.length} aanbiedingen',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+                      if (watchlistHits > 0) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2,
                           ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withAlpha(30),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '$watchlistHits watchlist items!',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(
+                        '${distance.toStringAsFixed(1)} km',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.onSurfaceVariant,
                         ),
                       ),
-                      if (closestDist != null) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          '${closestDist.toStringAsFixed(1)} km',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ],
@@ -1036,12 +857,14 @@ class _StoreDealsSheet extends StatelessWidget {
                 final oldPrice = _parseDouble(deal['old_price']);
                 final badge = _dealBadge(deal);
                 final dist = _parseDouble(deal['distance_km']);
+                final unitLabel = deal['unit_label']?.toString();
 
                 return _DealListTile(
                   name: name,
                   price: price,
                   oldPrice: oldPrice,
                   badge: badge,
+                  unitLabel: unitLabel,
                   distance: dist,
                   storeName: storeName,
                   onAddToWatchlist: () {
@@ -1077,6 +900,7 @@ class _DealListTile extends StatelessWidget {
   final double? price;
   final double? oldPrice;
   final String badge;
+  final String? unitLabel;
   final double? distance;
   final String storeName;
   final VoidCallback onAddToWatchlist;
@@ -1086,6 +910,7 @@ class _DealListTile extends StatelessWidget {
     required this.price,
     required this.oldPrice,
     required this.badge,
+    this.unitLabel,
     required this.distance,
     required this.storeName,
     required this.onAddToWatchlist,
@@ -1093,18 +918,27 @@ class _DealListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double? savings;
+    if (price != null && oldPrice != null && oldPrice! > price!) {
+      savings = oldPrice! - price!;
+    }
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.04),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Row(
         children: [
-          // Icon
+          // Icon Placeholder (could be store logo)
           Container(
             width: 56,
             height: 56,
@@ -1128,9 +962,7 @@ class _DealListTile extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7, vertical: 2,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.tertiary,
                         borderRadius: BorderRadius.circular(6),
@@ -1169,6 +1001,14 @@ class _DealListTile extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (unitLabel != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      unitLabel!,
+                      style: const TextStyle(fontSize: 10, color: AppColors.onSurfaceVariant),
+                    ),
+                  ),
                 const SizedBox(height: 6),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -1190,6 +1030,17 @@ class _DealListTile extends StatelessWidget {
                           fontSize: 11,
                           decoration: TextDecoration.lineThrough,
                           color: AppColors.outline,
+                        ),
+                      ),
+                    ],
+                    if (savings != null) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        'Bespaar €${savings.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
                         ),
                       ),
                     ],
@@ -1310,3 +1161,4 @@ class _SheetSkeletonState extends State<_SheetSkeleton>
     );
   }
 }
+

@@ -387,17 +387,29 @@ class _SearchResultTile extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                if (item.unitLabel != null)
+                  Text(
+                    item.unitLabel!,
+                    style: const TextStyle(fontSize: 11, color: AppColors.onSurfaceVariant),
+                  ),
+                const SizedBox(height: 6),
                 Row(
                   children: [
-                    if (item.category != null) ...[
-                      _Chip(label: item.category!, color: AppColors.secondary),
-                      const SizedBox(width: 6),
-                    ],
-                    if (item.supermarket != null)
+                    if (item.supermarket != null) ...[
                       _Chip(
                         label: item.supermarket!.toUpperCase(),
                         color: AppColors.tertiary,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    if (item.unitPrice != null)
+                      Text(
+                        '€${item.unitPrice!.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.primary,
+                        ),
                       ),
                   ],
                 ),

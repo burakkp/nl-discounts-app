@@ -7,6 +7,7 @@ import '../models/catalog_item.dart';
 import '../models/notification_history_item.dart';
 import '../models/watchlist_item.dart';
 import '../theme/app_theme.dart';
+import '../widgets/shimmer_loaders.dart';
 import 'catalog_search_sheet.dart';
 
 class WatchlistScreen extends ConsumerStatefulWidget {
@@ -276,7 +277,9 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
                     },
                   );
                 },
-                loading: () => _WatchlistSkeleton(),
+                loading: () => Column(
+                  children: List.generate(3, (i) => const ListTileShimmer()),
+                ),
                 error: (e, _) => _ErrorState(
                   error: e.toString(),
                   onRetry: () =>
@@ -565,6 +568,18 @@ class _WatchlistItemCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
 
+                if (item.unitLabel != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      item.unitLabel!,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+
                 const SizedBox(height: 8),
 
                 // Price row
@@ -604,27 +619,67 @@ class _WatchlistItemCard extends StatelessWidget {
                       ],
                     ),
 
-                    // Store name
-                    if (item.storeName != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.secondaryContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          item.storeName!.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.onSecondaryContainer,
-                            letterSpacing: 0.8,
+                    // Store & Date Column
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (item.storeName != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondaryContainer,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              item.storeName!.toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.onSecondaryContainer,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                        if (item.lastNotifiedAt != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.notifications_active,
+                                  size: 10,
+                                  color: AppColors.primary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Melding: ${_relativeTime(item.lastNotifiedAt!)}',
+                                  style: const TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        if (item.endDate != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              'Geldig t/m ${item.endDate}',
+                              style: const TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ],
@@ -687,62 +742,6 @@ class _EmptyWatchlist extends StatelessWidget {
   }
 }
 
-class _WatchlistSkeleton extends StatefulWidget {
-  @override
-  State<_WatchlistSkeleton> createState() => _WatchlistSkeletonState();
-}
-
-class _WatchlistSkeletonState extends State<_WatchlistSkeleton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        final color = Color.lerp(
-          AppColors.surfaceContainerLow,
-          AppColors.surfaceContainerHigh,
-          (_controller.value > 0.5
-                  ? 1 - _controller.value
-                  : _controller.value) *
-              2,
-        )!;
-        return Column(
-          children: List.generate(
-            3,
-            (i) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Container(
-                height: 112,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
 
 class _ErrorState extends StatelessWidget {
   final String error;
@@ -899,15 +898,6 @@ class _DismissibleNotificationCard extends StatelessWidget {
     }
     return Icons.local_offer_outlined;
   }
-
-  String _relativeTime(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
-    if (diff.inSeconds < 60) return 'ZOJUIST';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}M GELEDEN';
-    if (diff.inHours < 24) return '${diff.inHours}U GELEDEN';
-    return '${diff.inDays}D GELEDEN';
-  }
-
   @override
   Widget build(BuildContext context) {
     final isUnread = !item.isRead;
@@ -962,4 +952,12 @@ CatalogItem _watchlistItemToCatalogItem(WatchlistItem item) {
     name: item.productName,
     supermarket: item.storeName,
   );
+}
+
+String _relativeTime(DateTime dt) {
+  final diff = DateTime.now().difference(dt);
+  if (diff.inSeconds < 60) return 'ZOJUIST';
+  if (diff.inMinutes < 60) return '${diff.inMinutes}M GELEDEN';
+  if (diff.inHours < 24) return '${diff.inHours}U GELEDEN';
+  return '${diff.inDays}D GELEDEN';
 }

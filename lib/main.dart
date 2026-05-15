@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -15,6 +14,8 @@ import 'screens/map_view_screen.dart';
 import 'screens/watchlist_screen.dart';
 import 'screens/ai_scan_screen.dart';
 import 'screens/profile_screen.dart';
+
+import 'screens/splash_screen.dart';
 
 // Theme
 import 'theme/app_theme.dart';
@@ -41,12 +42,14 @@ class NederlandDiscountsApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'NL Discounts',
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: (!kIsWeb && Platform.isLinux)
-          ? const MainDashboard()
-          : (FirebaseAuth.instance.currentUser == null
-              ? const LoginScreen()
-              : const MainDashboard()),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const SplashScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/dashboard': (context) => const MainDashboard(),
+      },
     );
   }
 }

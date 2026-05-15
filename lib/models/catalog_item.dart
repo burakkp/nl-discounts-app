@@ -6,13 +6,21 @@ class CatalogItem {
   final String id; // Canonical product id or name slug
   final String name;
   final String? category;
-  final String? supermarket; // Non-null only when sourced from a discount record
+  final String? supermarket;
+  final double? originalPrice;
+  final String? unitLabel;
+  final double? unitPrice;
+  final String? endDate;
 
   const CatalogItem({
     required this.id,
     required this.name,
     this.category,
     this.supermarket,
+    this.originalPrice,
+    this.unitLabel,
+    this.unitPrice,
+    this.endDate,
   });
 
   /// Constructs a [CatalogItem] from a raw API discount map.
@@ -25,7 +33,18 @@ class CatalogItem {
       name: name,
       category: map['category']?.toString(),
       supermarket: map['supermarket']?.toString(),
+      originalPrice: _parseDouble(map['original_price'] ?? map['old_price']),
+      unitLabel: map['unit_label']?.toString(),
+      unitPrice: _parseDouble(map['unit_price']),
+      endDate: map['end_date']?.toString(),
     );
+  }
+
+  static double? _parseDouble(dynamic v) {
+    if (v == null) return null;
+    if (v is double) return v;
+    if (v is int) return v.toDouble();
+    return double.tryParse(v.toString());
   }
 
   @override
