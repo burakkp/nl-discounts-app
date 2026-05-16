@@ -1,0 +1,13 @@
+# Copy this file to android/local.properties and fill in your local SDK paths and API keys.
+# NEVER commit the actual local.properties file to git.
+
+sdk.dir=/home/username/Android/Sdk
+flutter.sdk=/home/username/flutter
+flutter.buildMode=release
+flutter.versionName=1.0.0
+flutter.versionCode=1
+java.home=/usr/lib/jvm/java-17-temurin-jdk
+
+# --- GOOGLE MAPS API KEY ---
+# Replace with your actual Google Maps API key (with Android restrictions enabled)
+MAPS_API_KEY=AIzaSy_your_google_maps_api_key_here
