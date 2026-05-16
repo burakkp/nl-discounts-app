@@ -141,7 +141,15 @@ class _MapViewScreenState extends ConsumerState<MapViewScreen>
 
   @override
   Widget build(BuildContext context) {
-    final storesAsync = ref.watch(nearbyStoresProvider);
+    final rawStoresAsync = ref.watch(nearbyStoresProvider);
+    final storesAsync = rawStoresAsync.whenData((stores) {
+      if (_selectedStore == 'Alle') return stores;
+      return stores.where((s) {
+        final chain = (s['chain_name']?.toString() ?? '').toLowerCase();
+        final selected = _selectedStore.toLowerCase();
+        return chain.contains(selected);
+      }).toList();
+    });
     final locationAsync = ref.watch(locationProvider);
     final city = ref.watch(locationCityProvider);
 

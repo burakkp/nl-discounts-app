@@ -12,15 +12,16 @@ class ApiService {
     // 💡 THE ARCHITECT'S CHOICE:
     // We use a compile-time constant to toggle between Local and Prod.
     // Run with: flutter run --dart-define=IS_LOCAL=true to use localhost.
-    const bool isLocal = bool.fromEnvironment('IS_LOCAL', defaultValue: false);
+    const bool isLocal = bool.fromEnvironment('IS_LOCAL', defaultValue: true);
 
     if (!isLocal) {
-      return 'https://nl-discounts-api.onrender.com';
+      return 'https://nl-discount.onrender.com';
     }
 
     // --- DEVELOPMENT FALLBACKS ---
     if (kIsWeb) return 'http://localhost:8000';
-    if (Platform.isAndroid) return 'http://10.0.2.2:8000';
+    // 💡 THE ARCHITECT'S CHOICE: We use the laptop's LAN IP for physical device debugging
+    if (Platform.isAndroid) return 'http://192.168.86.38:8000';
     return 'http://localhost:8000';
   }
 
